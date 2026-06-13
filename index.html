@@ -5,69 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CopaBet 2026 | Bolão Oficial</title>
     
-    <!-- Tailwind CSS para o design chique e fluido -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Configuração Padrão do Ambiente (Será substituída pela sua ao colocar no GitHub)
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // Cole aqui a configuração do seu projeto Firebase quando for hospedar no GitHub
-            apiKey: "COLE_SUA_API_KEY_AQUI",
+        // === CONFIGURAÇÃO DO SEU FIREBASE ===
+        // Você vai substituir os dados abaixo pelos do seu projeto Firebase!
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
             authDomain: "seu-projeto.firebaseapp.com",
             projectId: "seu-projeto",
             storageBucket: "seu-projeto.appspot.com",
             messagingSenderId: "123456789",
-            appId: "1:123:web:456"
+            appId: "1:123456:web:abcd"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'copabet-2026';
+        // Inicialização do Firebase (Tratamento para não dar erro na tela de preview)
+        let app, auth, db;
+        try {
+            app = initializeApp(typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) { console.log("Firebase aguardando configuração real."); }
 
-        // Tabela de Jogos da Copa (Datas configuradas para travar automaticamente)
-        // Dica: A data deve estar no formato ISO. Ex: Ano-Mes-DiaTHora:Minuto:Segundo
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'copabet-oficial';
+
+        // Tabela Oficial da Primeira Rodada da Copa 2026 (48 Seleções)
         const matches = [
-            { id: 'jogo1', teamA: 'Brasil', flagA: 'br', teamB: 'Sérvia', flagB: 'rs', date: '2026-06-12T16:00:00-03:00', group: 'Grupo G' },
-            { id: 'jogo2', teamA: 'Argentina', flagA: 'ar', teamB: 'México', flagB: 'mx', date: '2026-06-12T20:00:00-03:00', group: 'Grupo C' },
-            { id: 'jogo3', teamA: 'França', flagA: 'fr', teamB: 'Inglaterra', flagB: 'gb-eng', date: '2026-06-13T11:00:00-03:00', group: 'Grupo D' },
-            { id: 'jogo4', teamA: 'Alemanha', flagA: 'de', teamB: 'Espanha', flagB: 'es', date: '2026-06-13T15:00:00-03:00', group: 'Grupo E' },
-            { id: 'jogo5', teamA: 'Portugal', flagA: 'pt', teamB: 'Uruguai', flagB: 'uy', date: '2026-06-14T16:00:00-03:00', group: 'Grupo H' },
-            // Jogo no passado para demonstrar o sistema de "Travado"
-            { id: 'jogo6', teamA: 'Itália', flagA: 'it', teamB: 'Holanda', flagB: 'nl', date: '2026-06-10T12:00:00-03:00', group: 'Grupo A' }
+            // Grupo A
+            { id: 'm1', teamA: 'México', flagA: 'mx', teamB: 'África do Sul', flagB: 'za', date: '2026-06-11T16:00:00-03:00', group: 'Grupo A' },
+            { id: 'm2', teamA: 'Coreia do Sul', flagA: 'kr', teamB: 'Rep. Tcheca', flagB: 'cz', date: '2026-06-11T23:00:00-03:00', group: 'Grupo A' },
+            // Grupo B
+            { id: 'm3', teamA: 'Canadá', flagA: 'ca', teamB: 'Bósnia e Herz.', flagB: 'ba', date: '2026-06-12T16:00:00-03:00', group: 'Grupo B' },
+            { id: 'm4', teamA: 'Catar', flagA: 'qa', teamB: 'Suíça', flagB: 'ch', date: '2026-06-13T16:00:00-03:00', group: 'Grupo B' },
+            // Grupo C
+            { id: 'm5', teamA: 'Brasil', flagA: 'br', teamB: 'Marrocos', flagB: 'ma', date: '2026-06-13T19:00:00-03:00', group: 'Grupo C' },
+            { id: 'm6', teamA: 'Haiti', flagA: 'ht', teamB: 'Escócia', flagB: 'gb-sct', date: '2026-06-13T22:00:00-03:00', group: 'Grupo C' },
+            // Grupo D
+            { id: 'm7', teamA: 'EUA', flagA: 'us', teamB: 'Paraguai', flagB: 'py', date: '2026-06-12T22:00:00-03:00', group: 'Grupo D' },
+            { id: 'm8', teamA: 'Austrália', flagA: 'au', teamB: 'Turquia', flagB: 'tr', date: '2026-06-14T01:00:00-03:00', group: 'Grupo D' },
+            // Grupo E
+            { id: 'm9', teamA: 'Alemanha', flagA: 'de', teamB: 'Curaçao', flagB: 'cw', date: '2026-06-14T14:00:00-03:00', group: 'Grupo E' },
+            { id: 'm10', teamA: 'Costa do Marfim', flagA: 'ci', teamB: 'Equador', flagB: 'ec', date: '2026-06-14T20:00:00-03:00', group: 'Grupo E' },
+            // Grupo F
+            { id: 'm11', teamA: 'Holanda', flagA: 'nl', teamB: 'Japão', flagB: 'jp', date: '2026-06-14T17:00:00-03:00', group: 'Grupo F' },
+            { id: 'm12', teamA: 'Suécia', flagA: 'se', teamB: 'Tunísia', flagB: 'tn', date: '2026-06-14T23:00:00-03:00', group: 'Grupo F' },
+            // Grupo G
+            { id: 'm13', teamA: 'Bélgica', flagA: 'be', teamB: 'Egito', flagB: 'eg', date: '2026-06-15T16:00:00-03:00', group: 'Grupo G' },
+            { id: 'm14', teamA: 'Irã', flagA: 'ir', teamB: 'Nova Zelândia', flagB: 'nz', date: '2026-06-15T22:00:00-03:00', group: 'Grupo G' },
+            // Grupo H
+            { id: 'm15', teamA: 'Espanha', flagA: 'es', teamB: 'Cabo Verde', flagB: 'cv', date: '2026-06-15T13:00:00-03:00', group: 'Grupo H' },
+            { id: 'm16', teamA: 'Arábia Saudita', flagA: 'sa', teamB: 'Uruguai', flagB: 'uy', date: '2026-06-15T19:00:00-03:00', group: 'Grupo H' },
+            // Grupo I
+            { id: 'm17', teamA: 'França', flagA: 'fr', teamB: 'Senegal', flagB: 'sn', date: '2026-06-16T16:00:00-03:00', group: 'Grupo I' },
+            { id: 'm18', teamA: 'Iraque', flagA: 'iq', teamB: 'Noruega', flagB: 'no', date: '2026-06-16T19:00:00-03:00', group: 'Grupo I' },
+            // Grupo J
+            { id: 'm19', teamA: 'Argentina', flagA: 'ar', teamB: 'Argélia', flagB: 'dz', date: '2026-06-16T22:00:00-03:00', group: 'Grupo J' },
+            { id: 'm20', teamA: 'Áustria', flagA: 'at', teamB: 'Jordânia', flagB: 'jo', date: '2026-06-17T01:00:00-03:00', group: 'Grupo J' },
+            // Grupo K
+            { id: 'm21', teamA: 'Portugal', flagA: 'pt', teamB: 'RD Congo', flagB: 'cd', date: '2026-06-17T20:00:00-03:00', group: 'Grupo K' },
+            { id: 'm22', teamA: 'Uzbequistão', flagA: 'uz', teamB: 'Colômbia', flagB: 'co', date: '2026-06-18T10:00:00-03:00', group: 'Grupo K' },
+            // Grupo L
+            { id: 'm23', teamA: 'Inglaterra', flagA: 'gb-eng', teamB: 'Croácia', flagB: 'hr', date: '2026-06-17T15:00:00-03:00', group: 'Grupo L' },
+            { id: 'm24', teamA: 'Gana', flagA: 'gh', teamB: 'Panamá', flagB: 'pa', date: '2026-06-17T18:00:00-03:00', group: 'Grupo L' }
         ];
 
         let currentUser = null;
         let myBets = {};
 
-        // === INICIALIZAÇÃO E AUTENTICAÇÃO ===
         async function initAuth() {
+            if(!auth) return;
             try {
                 await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Erro de Autenticação:", error);
-            }
+            } catch (error) { console.error("Erro de Auth:", error); }
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                checkUserRegistration(user);
-                loadMyBets();
-                loadRanking();
-            }
-        });
+        if(auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    checkUserRegistration(user);
+                    loadMyBets();
+                    loadRanking();
+                }
+            });
+        }
 
         async function checkUserRegistration(user) {
             const username = localStorage.getItem('copabet_username');
@@ -75,38 +103,32 @@
                 document.getElementById('login-modal').classList.remove('hidden');
             } else {
                 document.getElementById('user-name-display').innerText = username;
-                // Salvar usuário no ranking público se não existir
                 const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'ranking', user.uid);
                 getDoc(userRef).then(docSnap => {
-                    if (!docSnap.exists()) {
-                        setDoc(userRef, { username: username, points: 0 });
-                    }
+                    if (!docSnap.exists()) setDoc(userRef, { username: username, points: 0 });
                 });
             }
         }
 
         window.registerUser = async function() {
             const input = document.getElementById('username-input').value.trim();
-            if (input.length < 3) {
-                alert("O nome deve ter pelo menos 3 letras.");
-                return;
-            }
+            if (input.length < 3) return showToast("O nome deve ter pelo menos 3 letras.", "error");
+            
             localStorage.setItem('copabet_username', input);
             document.getElementById('user-name-display').innerText = input;
             
-            if (currentUser) {
+            if (currentUser && db) {
                 const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'ranking', currentUser.uid);
                 await setDoc(userRef, { username: input, points: 0 });
             }
             
             document.getElementById('login-modal').classList.add('hidden');
+            showToast("Conta criada! Boa sorte nas apostas.", "success");
         }
 
-        // === NAVEGAÇÃO DE ABAS ===
         window.switchTab = function(tabName) {
             document.getElementById('tab-jogos').classList.add('hidden');
             document.getElementById('tab-ranking').classList.add('hidden');
-            
             document.getElementById('btn-tab-jogos').classList.remove('text-yellow-400', 'border-b-2', 'border-yellow-400');
             document.getElementById('btn-tab-ranking').classList.remove('text-yellow-400', 'border-b-2', 'border-yellow-400');
 
@@ -114,71 +136,62 @@
             document.getElementById(`btn-tab-${tabName}`).classList.add('text-yellow-400', 'border-b-2', 'border-yellow-400');
         }
 
-        // === LÓGICA DE JOGOS E APOSTAS ===
         function renderMatches() {
             const container = document.getElementById('matches-container');
             container.innerHTML = '';
-
             const now = new Date();
 
             matches.forEach(match => {
                 const matchDate = new Date(match.date);
-                const isLocked = now >= matchDate;
+                const isLocked = now >= matchDate; // Aqui é onde a mágica do travamento acontece!
                 
-                // Formatar data
                 const dateStr = matchDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 const timeStr = matchDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-                // Pegar palpite salvo (se existir)
                 const betA = myBets[match.id] ? myBets[match.id].scoreA : '';
                 const betB = myBets[match.id] ? myBets[match.id].scoreB : '';
 
                 const card = document.createElement('div');
-                card.className = `bg-slate-800 p-5 rounded-2xl border ${isLocked ? 'border-red-500/30 opacity-80' : 'border-slate-700 hover:border-yellow-500/50'} transition-all shadow-xl`;
+                card.className = `bg-slate-800 p-5 rounded-2xl border ${isLocked ? 'border-red-500/30 opacity-80' : 'border-slate-700 hover:border-yellow-500/50'} transition-all shadow-xl relative overflow-hidden`;
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                         <span>${match.group}</span>
-                        <span class="${isLocked ? 'text-red-400' : 'text-yellow-400'}">
+                        <span class="${isLocked ? 'text-red-400' : 'text-yellow-400'} bg-slate-900 px-2 py-1 rounded-md">
                             <i class="${isLocked ? 'fa-solid fa-lock' : 'fa-regular fa-clock'} mr-1"></i>
                             ${dateStr} às ${timeStr}
                         </span>
                     </div>
                     
                     <div class="flex justify-between items-center mt-4">
-                        <!-- Time A -->
-                        <div class="flex flex-col items-center w-1/3">
-                            <img src="https://flagcdn.com/w80/${match.flagA}.png" alt="${match.teamA}" class="w-16 h-12 object-cover rounded-md shadow-md mb-2">
-                            <span class="text-sm font-bold text-center">${match.teamA}</span>
+                        <div class="flex flex-col items-center w-[30%]">
+                            <img src="https://flagcdn.com/w80/${match.flagA}.png" alt="${match.teamA}" class="w-14 h-10 object-cover rounded shadow-md mb-2 border border-slate-600">
+                            <span class="text-xs font-bold text-center leading-tight">${match.teamA}</span>
                         </div>
                         
-                        <!-- Placar Input -->
-                        <div class="flex items-center space-x-2 w-1/3 justify-center">
+                        <div class="flex items-center space-x-2 w-[40%] justify-center">
                             <input type="number" min="0" id="bet-${match.id}-A" value="${betA}" 
-                                class="w-12 h-14 bg-slate-900 border-2 border-slate-700 text-center text-xl font-bold text-white rounded-lg focus:outline-none focus:border-yellow-400 disabled:opacity-50 disabled:bg-slate-800"
+                                class="w-12 h-12 bg-slate-900 border-2 border-slate-700 text-center text-xl font-bold text-white rounded focus:outline-none focus:border-yellow-400 disabled:opacity-50 disabled:bg-slate-800"
                                 ${isLocked ? 'disabled' : ''}>
-                            
-                            <span class="text-slate-500 font-bold">X</span>
-                            
+                            <span class="text-slate-500 font-bold text-sm">X</span>
                             <input type="number" min="0" id="bet-${match.id}-B" value="${betB}" 
-                                class="w-12 h-14 bg-slate-900 border-2 border-slate-700 text-center text-xl font-bold text-white rounded-lg focus:outline-none focus:border-yellow-400 disabled:opacity-50 disabled:bg-slate-800"
+                                class="w-12 h-12 bg-slate-900 border-2 border-slate-700 text-center text-xl font-bold text-white rounded focus:outline-none focus:border-yellow-400 disabled:opacity-50 disabled:bg-slate-800"
                                 ${isLocked ? 'disabled' : ''}>
                         </div>
                         
-                        <!-- Time B -->
-                        <div class="flex flex-col items-center w-1/3">
-                            <img src="https://flagcdn.com/w80/${match.flagB}.png" alt="${match.teamB}" class="w-16 h-12 object-cover rounded-md shadow-md mb-2">
-                            <span class="text-sm font-bold text-center">${match.teamB}</span>
+                        <div class="flex flex-col items-center w-[30%]">
+                            <img src="https://flagcdn.com/w80/${match.flagB}.png" alt="${match.teamB}" class="w-14 h-10 object-cover rounded shadow-md mb-2 border border-slate-600">
+                            <span class="text-xs font-bold text-center leading-tight">${match.teamB}</span>
                         </div>
                     </div>
                     
                     ${!isLocked ? `
-                        <button onclick="saveBet('${match.id}')" class="mt-6 w-full py-3 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-slate-900 font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.02] active:scale-95">
+                        <button onclick="saveBet('${match.id}')" class="mt-5 w-full py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-slate-900 text-sm font-bold rounded-lg shadow-lg transition-all">
                             Salvar Palpite
                         </button>
                     ` : `
-                        <div class="mt-6 w-full py-3 bg-slate-900/50 text-red-400 font-bold text-center rounded-xl border border-red-900/50">
-                            <i class="fa-solid fa-ban mr-2"></i> Jogo Iniciado (Apostas Fechadas)
+                        <div class="mt-5 w-full py-2.5 bg-slate-900/50 text-red-400 text-sm font-bold text-center rounded-lg border border-red-900/50">
+                            <i class="fa-solid fa-ban mr-1"></i> Partida Travada
                         </div>
                     `}
                 `;
@@ -187,15 +200,12 @@
         }
 
         window.saveBet = async function(matchId) {
-            if (!currentUser) return;
+            if (!currentUser || !db) return showToast("Aguarde a conexão com o banco...", "error");
             
             const scoreA = document.getElementById(`bet-${matchId}-A`).value;
             const scoreB = document.getElementById(`bet-${matchId}-B`).value;
 
-            if (scoreA === '' || scoreB === '') {
-                showToast('Preencha os dois placares!', 'error');
-                return;
-            }
+            if (scoreA === '' || scoreB === '') return showToast('Preencha os dois placares!', 'error');
 
             const btn = event.currentTarget;
             const originalText = btn.innerHTML;
@@ -203,54 +213,35 @@
 
             try {
                 const betRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bets', matchId);
-                await setDoc(betRef, {
-                    scoreA: parseInt(scoreA),
-                    scoreB: parseInt(scoreB),
-                    updatedAt: new Date().toISOString()
-                });
-                
+                await setDoc(betRef, { scoreA: parseInt(scoreA), scoreB: parseInt(scoreB) });
                 myBets[matchId] = { scoreA, scoreB };
-                showToast('Palpite salvo com sucesso!', 'success');
+                showToast('Palpite salvo!', 'success');
             } catch (error) {
-                console.error("Erro ao salvar:", error);
-                showToast('Erro ao salvar palpite.', 'error');
+                showToast('Erro ao salvar no banco.', 'error');
             } finally {
                 btn.innerHTML = originalText;
             }
         }
 
         function loadMyBets() {
-            if (!currentUser) return;
-            
+            if (!currentUser || !db) return;
             const betsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bets');
             onSnapshot(betsRef, (snapshot) => {
-                snapshot.forEach(doc => {
-                    myBets[doc.id] = doc.data();
-                });
-                renderMatches(); // Re-renderiza para mostrar os palpites carregados
-            }, (error) => {
-                console.error("Erro ao ler palpites:", error);
+                snapshot.forEach(doc => { myBets[doc.id] = doc.data(); });
+                renderMatches();
             });
         }
 
-        // === LÓGICA DO RANKING GLOBAL ===
         function loadRanking() {
+            if(!db) return;
             const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
-            
-            // Ouvinte em tempo real para o ranking
             onSnapshot(rankingRef, (snapshot) => {
                 const rankingList = document.getElementById('ranking-list');
                 rankingList.innerHTML = '';
-                
                 let users = [];
-                snapshot.forEach(doc => {
-                    users.push({ id: doc.id, ...doc.data() });
-                });
-
-                // Ordenar por pontos (maior para menor)
+                snapshot.forEach(doc => { users.push({ id: doc.id, ...doc.data() }); });
                 users.sort((a, b) => b.points - a.points);
 
-                // Adicionar usuários falsos para demonstração se estiver vazio
                 if (users.length === 0 || (users.length === 1 && users[0].points === 0)) {
                     users.push({ id: 'dummy1', username: 'MestreDasApostas', points: 15 });
                     users.push({ id: 'dummy2', username: 'FutebolArteBR', points: 12 });
@@ -262,140 +253,128 @@
                     const isMe = currentUser && user.id === currentUser.uid;
                     const position = index + 1;
                     
-                    let medal = `<span class="text-slate-500 font-bold w-6 text-center">${position}º</span>`;
-                    if (position === 1) medal = `<i class="fa-solid fa-trophy text-yellow-400 text-xl w-6 text-center drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"></i>`;
-                    if (position === 2) medal = `<i class="fa-solid fa-medal text-gray-400 text-xl w-6 text-center"></i>`;
-                    if (position === 3) medal = `<i class="fa-solid fa-medal text-amber-600 text-xl w-6 text-center"></i>`;
+                    let medal = `<span class="text-slate-500 font-bold w-8 text-center">${position}º</span>`;
+                    if (position === 1) medal = `<i class="fa-solid fa-trophy text-yellow-400 text-xl w-8 text-center drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"></i>`;
+                    if (position === 2) medal = `<i class="fa-solid fa-medal text-gray-300 text-xl w-8 text-center"></i>`;
+                    if (position === 3) medal = `<i class="fa-solid fa-medal text-amber-600 text-xl w-8 text-center"></i>`;
 
                     const row = document.createElement('div');
-                    row.className = `flex items-center justify-between p-4 rounded-xl mb-2 ${isMe ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-slate-800'}`;
-                    
+                    row.className = `flex items-center justify-between p-4 rounded-xl mb-3 ${isMe ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-slate-800'}`;
                     row.innerHTML = `
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
                             ${medal}
-                            <div class="flex flex-col">
-                                <span class="font-bold ${isMe ? 'text-yellow-400' : 'text-white'} text-lg">${user.username} ${isMe ? '(Você)' : ''}</span>
-                            </div>
+                            <span class="font-bold ${isMe ? 'text-yellow-400' : 'text-white'} text-lg">${user.username} ${isMe ? '(Você)' : ''}</span>
                         </div>
                         <div class="bg-slate-900 px-4 py-2 rounded-lg border border-slate-700 shadow-inner">
-                            <span class="text-xl font-extrabold text-white">${user.points} <span class="text-sm font-normal text-slate-400">pts</span></span>
+                            <span class="text-xl font-black text-white">${user.points} <span class="text-xs font-normal text-slate-400 uppercase">pts</span></span>
                         </div>
                     `;
                     rankingList.appendChild(row);
-
-                    // Atualizar meus pontos no header
-                    if (isMe) {
-                        document.getElementById('user-points-display').innerText = user.points;
-                    }
+                    if (isMe) document.getElementById('user-points-display').innerText = user.points;
                 });
-            }, (error) => {
-                console.error("Erro no ranking:", error);
             });
         }
 
-        // === SISTEMA DE NOTIFICAÇÃO (TOAST) ===
         function showToast(message, type) {
             const toast = document.getElementById('toast');
             toast.innerText = message;
-            if (type === 'success') {
-                toast.className = 'fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-xl font-bold shadow-2xl transition-all transform translate-y-0 opacity-100 z-50';
-            } else {
-                toast.className = 'fixed bottom-5 right-5 bg-red-500 text-white px-6 py-3 rounded-xl font-bold shadow-2xl transition-all transform translate-y-0 opacity-100 z-50';
-            }
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-10', 'opacity-0');
-            }, 3000);
+            toast.className = `fixed bottom-5 right-5 text-white px-6 py-3 rounded-xl font-bold shadow-2xl transition-all transform translate-y-0 opacity-100 z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0'), 3000);
         }
 
-        // Loop principal para verificar travamento de jogos a cada segundo
         setInterval(() => {
-            if (document.getElementById('tab-jogos').classList.contains('hidden')) return;
-            // Apenas re-renderiza para atualizar os cadeados sem perder o foco
-            // Em um app real, faríamos atualização granular. Aqui simplificamos.
-        }, 60000); // Atualiza a cada 1 minuto
+            if (!document.getElementById('tab-jogos').classList.contains('hidden')) renderMatches();
+        }, 30000); // Atualiza os travamentos a cada 30 segundos
 
-        // Iniciar
-        initAuth();
-        renderMatches();
+        window.onload = () => {
+            initAuth();
+            renderMatches();
+            
+            // Verifica se o usuário precisa preencher o Firebase pra funcionar no Github
+            if(firebaseConfig.apiKey === "SUA_API_KEY") {
+               setTimeout(() => {
+                   document.getElementById('firebase-warning').classList.remove('hidden');
+               }, 1000);
+            }
+        };
 
     </script>
 
     <style>
         body { font-family: 'Poppins', sans-serif; }
-        /* Esconde setinhas de inputs numéricos */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
 
-    <!-- Navbar / Header Premium -->
+    <!-- Navbar Premium -->
     <nav class="bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-2xl">
-        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-futbol text-yellow-400 text-3xl"></i>
+                <i class="fa-solid fa-earth-americas text-yellow-400 text-3xl"></i>
                 <h1 class="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-yellow-600">
                     CopaBet<span class="text-slate-100">26</span>
                 </h1>
             </div>
             
-            <div class="flex items-center space-x-4 bg-slate-800 rounded-full px-4 py-2 border border-slate-700">
+            <div class="flex items-center space-x-3 bg-slate-800 rounded-full px-4 py-1.5 border border-slate-700">
                 <i class="fa-solid fa-user-circle text-slate-400 text-xl"></i>
-                <div class="flex flex-col text-sm">
-                    <span id="user-name-display" class="font-bold text-white truncate w-20 sm:w-auto">Visitante</span>
-                    <span class="text-yellow-400 font-bold text-xs"><span id="user-points-display">0</span> pts</span>
+                <div class="flex flex-col text-sm leading-tight">
+                    <span id="user-name-display" class="font-bold text-white truncate max-w-[80px] sm:max-w-[150px]">Visitante</span>
+                    <span class="text-yellow-400 font-bold text-[11px] uppercase"><span id="user-points-display">0</span> pontos</span>
                 </div>
             </div>
         </div>
 
-        <!-- Menu de Abas -->
-        <div class="max-w-5xl mx-auto px-4 flex space-x-6">
+        <div class="max-w-6xl mx-auto px-4 flex space-x-6">
             <button id="btn-tab-jogos" onclick="switchTab('jogos')" class="py-3 px-2 font-bold text-yellow-400 border-b-2 border-yellow-400 transition-colors uppercase text-sm tracking-wide">
-                <i class="fa-solid fa-calendar-days mr-1"></i> Jogos
+                <i class="fa-solid fa-calendar-days mr-1"></i> Rodada 1
             </button>
             <button id="btn-tab-ranking" onclick="switchTab('ranking')" class="py-3 px-2 font-bold text-slate-400 hover:text-white transition-colors uppercase text-sm tracking-wide">
-                <i class="fa-solid fa-earth-americas mr-1"></i> Ranking Global
+                <i class="fa-solid fa-ranking-star mr-1"></i> Ranking
             </button>
         </div>
     </nav>
 
-    <!-- Conteúdo Principal -->
-    <main class="max-w-5xl mx-auto px-4 py-8">
+    <!-- Alerta Educativo para GitHub -->
+    <div id="firebase-warning" class="hidden max-w-6xl mx-auto px-4 mt-4 animate-bounce">
+        <div class="bg-blue-900/50 border border-blue-500 p-4 rounded-xl text-blue-200 text-sm">
+            <i class="fa-solid fa-circle-info mr-2 text-blue-400"></i>
+            <strong>Nota do Desenvolvedor:</strong> Lembre-se de colocar as chaves do seu Firebase no código antes de jogar no GitHub Pages!
+        </div>
+    </div>
+
+    <!-- Conteúdo -->
+    <main class="max-w-6xl mx-auto px-4 py-6">
         
         <!-- ABA: JOGOS -->
-        <div id="tab-jogos" class="block animate-fade-in">
+        <div id="tab-jogos" class="block">
             <div class="mb-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-white"><i class="fa-solid fa-pen-to-square text-yellow-500 mr-2"></i>Faça seus Palpites</h2>
-                <p class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full"><i class="fa-solid fa-circle-info mr-1"></i> Trava no apito inicial</p>
+                <h2 class="text-xl md:text-2xl font-bold text-white"><i class="fa-solid fa-pen-to-square text-yellow-500 mr-2"></i>Palpites da 1ª Rodada</h2>
+                <span class="text-[10px] md:text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                    <i class="fa-solid fa-lock text-red-400 mr-1"></i> Trava no apito inicial
+                </span>
             </div>
             
-            <!-- Grid de Jogos -->
-            <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Renderizado pelo JavaScript -->
+            <div id="matches-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Javascript injeta os jogos aqui -->
             </div>
         </div>
 
-        <!-- ABA: RANKING GLOBAL -->
-        <div id="tab-ranking" class="hidden animate-fade-in">
-            <div class="mb-6 text-center">
-                <i class="fa-solid fa-crown text-yellow-400 text-5xl mb-2 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
-                <h2 class="text-3xl font-black text-white uppercase tracking-widest">Top Apostadores</h2>
-                <p class="text-slate-400 mt-2">Acerte o placar exato para ganhar 1 ponto.</p>
+        <!-- ABA: RANKING -->
+        <div id="tab-ranking" class="hidden">
+            <div class="mb-8 text-center">
+                <i class="fa-solid fa-crown text-yellow-400 text-5xl mb-3 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
+                <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-widest">Global Ranking</h2>
+                <p class="text-slate-400 text-sm mt-2">Acerte o placar para subir na tabela de milionários da Copa.</p>
             </div>
 
-            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 shadow-2xl max-w-2xl mx-auto">
+            <div class="bg-slate-900/50 p-3 md:p-5 rounded-2xl border border-slate-700 shadow-2xl max-w-3xl mx-auto">
                 <div id="ranking-list" class="flex flex-col">
-                    <!-- Renderizado pelo JavaScript -->
                     <div class="text-center py-10 text-slate-500">
                         <i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i>
-                        <p>Carregando ranking global...</p>
+                        <p>Carregando o ranking ao vivo...</p>
                     </div>
                 </div>
             </div>
@@ -403,24 +382,28 @@
 
     </main>
 
-    <!-- Modal de Cadastro / Login Simulado -->
-    <div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center transform transition-all">
-            <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
-                <i class="fa-solid fa-user-astronaut text-slate-900 text-3xl"></i>
+    <!-- Modal de Login -->
+    <div id="login-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 text-yellow-500/10 text-9xl"><i class="fa-solid fa-futbol"></i></div>
+            
+            <div class="relative z-10">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
+                    <i class="fa-solid fa-user-astronaut text-slate-900 text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-black text-white mb-2">Seu Nome no Bolão</h3>
+                <p class="text-slate-400 text-sm mb-6">Cadastre seu nome para salvar suas apostas no servidor e disputar o ranking.</p>
+                
+                <input type="text" id="username-input" placeholder="Ex: João Silva" class="w-full bg-slate-800 border-2 border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-yellow-500 mb-4 text-center font-bold">
+                
+                <button onclick="registerUser()" class="w-full py-3 bg-gradient-to-r from-yellow-500 to-yellow-400 text-slate-900 font-bold rounded-xl shadow-lg hover:shadow-yellow-500/20 transition-all uppercase tracking-wide">
+                    Entrar no Jogo <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
             </div>
-            <h3 class="text-2xl font-black text-white mb-2">Bem-vindo ao Bolão!</h3>
-            <p class="text-slate-400 text-sm mb-6">Crie seu nome de usuário para entrar no Ranking Global e salvar suas apostas.</p>
-            
-            <input type="text" id="username-input" placeholder="Seu apelido..." class="w-full bg-slate-800 border-2 border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-yellow-500 mb-4 text-center font-bold">
-            
-            <button onclick="registerUser()" class="w-full py-3 bg-gradient-to-r from-yellow-500 to-yellow-400 text-slate-900 font-bold rounded-xl shadow-lg hover:shadow-yellow-500/20 transition-all">
-                Entrar no Jogo <i class="fa-solid fa-arrow-right ml-2"></i>
-            </button>
         </div>
     </div>
 
-    <!-- Notificações Toast -->
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 translate-y-20 opacity-0 z-50 transition-all duration-300"></div>
 
 </body>
