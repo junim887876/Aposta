@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>pao</title>
+    <title>Master Despacho | Black Concierge</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -19,54 +19,16 @@
             --shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Montserrat', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-
-        body { 
-            background-color: var(--bg-main); 
-            color: var(--text-white); 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            min-height: 100vh; 
-        }
-
-        .dashboard-container { 
-            width: 100%; 
-            max-width: 1100px; 
-            display: grid; 
-            grid-template-columns: 1.2fr 0.8fr; 
-            gap: 24px; 
-        }
-
-        @media (max-width: 900px) {
-            .dashboard-container { 
-                grid-template-columns: 1fr; 
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-main); color: var(--text-white); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .dashboard-container { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
+        @media (max-width: 900px) { .dashboard-container { grid-template-columns: 1fr; } }
 
         /* PAINEL ESQUERDO: FEED DE PEDIDOS LIVE */
         .orders-feed { display: flex; flex-direction: column; gap: 16px; }
-        
-        .feed-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: var(--bg-card); padding: 16px 20px; border-radius: 18px; 
-            border: 1px solid var(--border-subtle); box-shadow: var(--shadow);
-        }
-        
+        .feed-header { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 16px 20px; border-radius: 18px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow); }
         .feed-header h2 { font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; }
-        
-        .sync-btn { 
-            background: var(--gold); color: black; border: none; padding: 10px 18px; 
-            border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; 
-            text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; gap: 8px; 
-        }
-        
+        .sync-btn { background: var(--gold); color: black; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
         .sync-btn:active { transform: scale(0.95); }
 
         .orders-list { display: flex; flex-direction: column; gap: 12px; max-height: 78vh; overflow-y: auto; padding-right: 4px; }
@@ -74,35 +36,19 @@
         .orders-list::-webkit-scrollbar-track { background: transparent; }
         .orders-list::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
         
-        /* CARD DE PEDIDO PREMIUM */
-        .order-card { 
-            background: var(--bg-card); border: 1px solid var(--border-subtle); 
-            border-radius: 18px; padding: 18px; transition: all 0.2s ease; 
-            position: relative; cursor: pointer; box-shadow: var(--shadow);
-        }
-        
+        .order-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 18px; transition: all 0.2s ease; position: relative; cursor: pointer; box-shadow: var(--shadow); }
         .order-card:hover { border-color: rgba(212,175,55,0.4); transform: translateY(-2px); }
         .order-card.selected { border-color: var(--gold); background: rgba(212,175,55,0.03); }
-
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         .client-name { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
-        .order-status-badge { 
-            font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 5px 12px; 
-            border-radius: 20px; background: rgba(34, 197, 94, 0.1); color: var(--success); 
-            border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 0.5px;
-        }
-
+        .order-status-badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 0.5px; }
         .card-details { font-size: 13px; color: var(--text-muted); display: grid; gap: 5px; line-height: 1.4; }
         .card-details strong { color: var(--gold); font-weight: 600; }
 
         /* PAINEL DIREITO: ESTAÇÃO TÉRMICA */
-        .printer-station { 
-            background: var(--bg-card); border: 1px solid var(--border-subtle); 
-            border-radius: 24px; padding: 24px; display: flex; flex-direction: column; 
-            align-items: center; height: fit-content; position: sticky; top: 20px; box-shadow: var(--shadow);
-        }
+        .printer-station { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; align-items: center; height: fit-content; position: sticky; top: 20px; box-shadow: var(--shadow); }
         
-        /* Preview da Bobina Física */
+        /* Preview da Bobina Física (58mm) */
         .thermal-ticket {
             background: #ffffff; color: #000000; width: 100%; max-width: 58mm; min-height: 100mm; 
             padding: 12px; font-family: 'Courier New', Courier, monospace; font-size: 12px; 
@@ -112,19 +58,12 @@
         .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
         .ticket-header h3 { font-size: 14px; font-weight: bold; letter-spacing: 1px; }
         .ticket-header p { font-size: 9px; margin-top: 2px; }
-        
         .ticket-sec { border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px; }
         .ticket-sec span { display: block; font-weight: bold; font-size: 10px; text-transform: uppercase; color: #333; }
         .ticket-sec div { font-size: 12px; word-wrap: break-word; }
-        
         .ticket-footer { text-align: center; font-size: 9px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 6px; }
 
-        /* Botão de Disparo */
-        .action-btn { 
-            width: 100%; padding: 16px; border: none; border-radius: 14px; 
-            font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; 
-        }
-        
+        .action-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; }
         .btn-active { background: linear-gradient(135deg, var(--gold) 0%, #b8901c 100%); color: #000; box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
         .btn-active:active { transform: scale(0.97); box-shadow: none; }
         .btn-disabled { background: #27272a; color: var(--text-muted); cursor: not-allowed; }
@@ -133,84 +72,97 @@
 <body>
 
 <div class="dashboard-container">
-    
-    <!-- PAINEL DE MONITORAMENTO -->
     <div class="orders-feed">
         <div class="feed-header">
-            <h2>Pedidos Live (Google Sheets)</h2>
-            <button class="sync-btn" onclick="buscarDadosPlanilha()">
-                <i class="fas fa-sync-alt"></i> Sincronizar
-            </button>
+            <h2>Pedidos Live (Sheets)</h2>
+            <button class="sync-btn" onclick="buscarDadosPlanilha()"><i class="fas fa-sync-alt"></i> Sincronizar</button>
         </div>
         <div class="orders-list" id="domOrdersList">
             <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Conectando ao banco de dados...</p>
         </div>
     </div>
 
-    <!-- ESTAÇÃO ULTRA-RÁPIDA RAWBT -->
     <div class="printer-station">
         <div class="thermal-ticket" id="domTicket">
             <div class="ticket-header">
                 <h3>BLACK CONCIERGE</h3>
                 <p>SERVICO DE BORDO VIP</p>
-                <p id="tkData">Data: --/--/---- --:--:--</p>
+                <p id="tkData">Data: --/--/---- --:--</p>
             </div>
             <div class="ticket-sec"><span>CLIENTE:</span><div id="tkNome">Selecione um pedido...</div></div>
             <div class="ticket-sec"><span>WHATSAPP:</span><div id="tkWhats">--</div></div>
             <div class="ticket-sec"><span>ID CARTÃO:</span><div id="tkCartao">--</div></div>
             <div class="ticket-sec"><span>ENDEREÇO:</span><div id="tkEnd">--</div></div>
-            <div class="ticket-sec"><span>DETALHES DO PEDIDO:</span><div id="tkItens" style="white-space: pre-wrap;">--</div></div>
+            <div class="ticket-sec"><span>PRODUTOS SOLICITADOS:</span><div id="tkItens" style="white-space: pre-wrap;">--</div></div>
             <div class="ticket-footer">
-                <p>Muito Obrigado Pela Preferência!</p>
-                <p>*** IMPRESSAO ILIMITADA VIA RAWBT ***</p>
+                <p>Muito Obrigado Pela Preferencia!</p>
+                <p>*** RAWBT 58MM ***</p>
             </div>
         </div>
-
-        <button id="domPrintBtn" class="action-btn btn-disabled" disabled onclick="dispararIntentRawBT()">
-            <i class="fas fa-print"></i> Imprimir via RawBT
-        </button>
+        <button id="domPrintBtn" class="action-btn btn-disabled" disabled onclick="dispararIntentRawBT()"><i class="fas fa-print"></i> Imprimir via RawBT</button>
     </div>
-
 </div>
 
 <script>
-    // URL da sua planilha Google
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/12SKPvrmT-FPp_igfoAZ7XGsBPEBsP9ETwLNxW5lg_dI/gviz/tq?tqx=out:json';
-    
     let cachePedidos = [];
     let pedidoSelecionadoIdx = null;
 
-    window.onload = () => {
-        buscarDadosPlanilha();
-    };
+    window.onload = () => { buscarDadosPlanilha(); };
 
     function buscarDadosPlanilha() {
         const listContainer = document.getElementById('domOrdersList');
-        listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;"><i class="fas fa-spinner fa-spin"></i> Baixando dados atualizados...</p>';
+        listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;"><i class="fas fa-spinner fa-spin"></i> Baixando dados...</p>';
         
         fetch(SHEET_URL)
             .then(res => res.text())
             .then(data => {
                 const jsonString = data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1);
                 const json = JSON.parse(jsonString);
-                const rows = json.table.rows;
                 
+                // MOTOR DE LEITURA INTELIGENTE DE COLUNAS
+                // Descobre onde os dados estão baseados nos cabeçalhos (fallback seguro se estiverem em branco)
+                let map = { nome: 1, pedido: 2, cartao: 3, whats: 4, endereco: 1 };
+                if (json.table.cols) {
+                    json.table.cols.forEach((col, i) => {
+                        if(col && col.label) {
+                            let lbl = col.label.toLowerCase();
+                            if(lbl.includes('nome')) map.nome = i;
+                            if(lbl.includes('whats') || lbl.includes('telefone')) map.whats = i;
+                            if(lbl.includes('pedido') || lbl.includes('produto') || lbl.includes('bebida')) map.pedido = i;
+                            if(lbl.includes('id') || lbl.includes('cartão') || lbl.includes('cartao') || lbl.includes('black')) map.cartao = i;
+                            if(lbl.includes('endereço') || lbl.includes('endereco') || lbl.includes('entrega')) map.endereco = i;
+                        }
+                    });
+                }
+
+                // Função para extrair dados limpos (Ignora o formato DATE() feio do Google Sheets)
+                const getVal = (colData) => {
+                    if (!colData) return "Não Informado";
+                    // Se o Google Sheets mandou a formatação humana '.f', usa ela. Senão usa '.v'.
+                    return colData.f ? String(colData.f) : String(colData.v);
+                };
+
+                const rows = json.table.rows;
                 cachePedidos = [];
                 
                 rows.forEach((row, index) => {
-                    if(row.c && row.c[0] && row.c[0].v !== "NOME") {
-                        const nome = row.c[0] ? String(row.c[0].v) : "Não Informado";
-                        const whats = row.c[1] ? String(row.c[1].v) : "Não Informado";
-                        const pedido = row.c[2] ? String(row.c[2].v) : "Sem itens";
-                        const cartao = row.c[3] ? String(row.c[3].v) : "Padrão";
-                        const endereco = row.c[4] ? String(row.c[4].v) : "Não Informado";
+                    // Evita processar a linha do cabeçalho se ela for lida como dado
+                    if(row.c && row.c[map.pedido] && !String(row.c[map.pedido].v).toUpperCase().includes("PEDIDO")) {
+                        
+                        const nome = getVal(row.c[map.nome]);
+                        const whats = getVal(row.c[map.whats]);
+                        const pedido = getVal(row.c[map.pedido]);
+                        const cartao = getVal(row.c[map.cartao]);
+                        const endereco = getVal(row.c[map.endereco]);
                         
                         const uniqueHash = btoa(encodeURIComponent(nome + endereco + index)).substring(0, 16);
                         const jaImpresso = localStorage.getItem(uniqueHash) === "true";
 
-                        cachePedidos.push({
-                            nome, whats, pedido, cartao, endereco, hash: uniqueHash, impresso: jaImpresso
-                        });
+                        // Ignora linhas totalmente vazias
+                        if(pedido !== "Não Informado") {
+                            cachePedidos.push({ nome, whats, pedido, cartao, endereco, hash: uniqueHash, impresso: jaImpresso });
+                        }
                     }
                 });
 
@@ -218,7 +170,7 @@
                 renderizarListaPedidos();
             })
             .catch(err => {
-                listContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 40px 0;"><i class="fas fa-exclamation-triangle"></i> Erro na requisição. Planilha está pública?</p>';
+                listContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 40px 0;"><i class="fas fa-exclamation-triangle"></i> Erro na requisição. A planilha está pública?</p>';
             });
     }
 
@@ -227,7 +179,7 @@
         listContainer.innerHTML = "";
         
         if(cachePedidos.length === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Nenhum registro encontrado.</p>';
+            listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Nenhum registro encontrado na planilha.</p>';
             return;
         }
         
@@ -243,7 +195,7 @@
                     </div>
                     <div class="card-details">
                         <div><strong>Endereço:</strong> ${item.endereco}</div>
-                        <div><strong>Itens:</strong> ${item.pedido.split('\\n')[0]}...</div>
+                        <div><strong>Itens:</strong> ${item.pedido.split('\\n')[0].substring(0, 30)}...</div>
                     </div>
                 </div>
             `;
@@ -263,10 +215,11 @@
         const selectedCard = document.getElementById(`card-item-${index}`);
         if(selectedCard) selectedCard.classList.add('selected');
 
+        // Formatação de data padronizada (Sem segundos e com "às" para ficar com jeito brasileiro)
         const agora = new Date();
         const dataFmt = agora.toLocaleDateString('pt-BR');
-        const horaFmt = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-        document.getElementById('tkData').innerText = `Data: ${dataFmt} - ${horaFmt}`;
+        const horaFmt = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('tkData').innerText = `${dataFmt} as ${horaFmt}`;
 
         document.getElementById('tkNome').innerText = item.nome;
         document.getElementById('tkWhats').innerText = item.whats;
@@ -280,7 +233,7 @@
     }
 
     // =================================================================================
-    // 🖨️ INTENT DO RAWBT (ENVIA TEXTO PURO DIRETO PARA A IMPRESSORA E PULA O CHROME)
+    // 🖨️ MOTOR RAWBT CALIBRADO (MÁXIMO DE 32 CARACTERES POR LINHA PARA 58MM)
     // =================================================================================
     function dispararIntentRawBT() {
         if(pedidoSelecionadoIdx === null) return;
@@ -288,29 +241,27 @@
         const item = cachePedidos[pedidoSelecionadoIdx];
         const dataHoraCupom = document.getElementById('tkData').innerText;
 
-        // Construção do Recibo Térmico (O [C] centraliza a linha no RawBT)
+        // Construção cirúrgica com larguras exatas para a impressora não quebrar palavras
         let txt = "";
-        txt += "[C]========== BLACK CONCIERGE ==========\n";
-        txt += "[C]SERVICO DE BORDO EXCLUSIVO VIP\n\n";
-        txt += `${dataHoraCupom}\n`;
+        txt += "[C]======= BLACK CONCIERGE =======\n"; // Exatos 32 caracteres (com comando)
+        txt += "[C]SERVICO DE BORDO VIP\n\n";
+        txt += `DATA: ${dataHoraCupom}\n`;
         txt += `CLIENTE: ${item.nome.toUpperCase()}\n`;
         txt += `WHATSAPP: ${item.whats}\n`;
-        txt += `ID CARTAO BLACK: ${item.cartao.toUpperCase()}\n`;
+        txt += `ID CARTAO: ${item.cartao.toUpperCase()}\n`;
         txt += `ENDERECO: ${item.endereco.toUpperCase()}\n`;
-        txt += "----------------------------------------\n";
-        txt += "[C]🛍️ PRODUTOS SOLICITADOS\n";
+        txt += "--------------------------------\n"; // Exatos 32 caracteres
+        txt += "[C]PRODUTOS SOLICITADOS\n"; // Removido emojis para evitar bug na impressora
         txt += `${item.pedido}\n`;
-        txt += "----------------------------------------\n\n";
-        txt += "[C]Muito obrigado pela preferencia!\n";
-        txt += "[C]====================================\n";
+        txt += "--------------------------------\n\n"; // Exatos 32 caracteres
+        txt += "[C]Obrigado pela preferencia!\n";
+        txt += "[C]================================\n"; // Exatos 32 caracteres
 
-        // URL Mágica que intercepta o app no Android
+        // Disparo do Intent
         const rawbtIntentUrl = "intent:" + encodeURIComponent(txt) + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
-        
-        // Dispara o aplicativo
         window.location.href = rawbtIntentUrl;
 
-        // Salva visualmente que já foi impresso
+        // Marca como impresso localmente
         localStorage.setItem(item.hash, "true");
         item.impresso = true;
         
