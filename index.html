@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Despacho | Black Concierge</title>
+    <title>Master</title>
     <style>
         :root {
             --bg-main: #000000;
@@ -13,7 +13,6 @@
             --text-white: #ffffff;
             --text-muted: #a1a1aa;
             --border-subtle: #27272a;
-            --danger: #ef4444;
             --success: #22c55e;
         }
 
@@ -40,10 +39,6 @@
         .order-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 16px; transition: 0.3s; position: relative; cursor: pointer; }
         .order-card:hover { border-color: rgba(212,175,55,0.4); }
         .order-card.selected { border-color: var(--gold); background: rgba(212,175,55,0.02); }
-        
-        /* Estado Bloqueado pós-impressão */
-        .order-card.printed-lock { border-color: #1a1a1a; background: #080809; opacity: 0.55; }
-        .order-card.printed-lock .order-status-badge { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
 
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .client-name { font-size: 16px; font-weight: 700; color: #fff; }
@@ -54,7 +49,7 @@
 
         .printer-station { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; align-items: center; height: fit-content; position: sticky; top: 20px; }
         
-        /* Bobina Térmica de Alta Definição */
+        /* Bobina Térmica 58mm para RawBT */
         .thermal-ticket {
             background: #ffffff; color: #000000; width: 58mm; min-height: 95mm; padding: 10px;
             font-family: 'Courier New', Courier, monospace; font-size: 11px; line-height: 1.4;
@@ -69,7 +64,7 @@
 
         .action-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
         .btn-active { background: linear-gradient(135deg, var(--gold) 0%, #b8901c 100%); color: #000; box-shadow: 0 4px 15px rgba(212,175,55,0.25); }
-        .btn-locked { background: #27272a !important; color: var(--text-muted) !important; cursor: not-allowed !important; box-shadow: none !important; border: 1px solid var(--border-subtle); }
+        .btn-active:active { transform: scale(0.98); }
 
         @media print {
             body { background: #fff; padding: 0; }
@@ -106,10 +101,10 @@
             <div class="ticket-sec"><span>ID CARTÃO:</span><div id="tkCartao">--</div></div>
             <div class="ticket-sec"><span>ENDEREÇO:</span><div id="tkEnd">--</div></div>
             <div class="ticket-sec"><span>PEDIDO COMPLETO:</span><div id="tkItens" style="white-space: pre-wrap;">--</div></div>
-            <div class="ticket-footer"><p>Muito Obrigado Pela Preferência!</p><p>*** OPERAÇÃO ANTI-DUPLICIDADE ***</p></div>
+            <div class="ticket-footer"><p>Muito Obrigado Pela Preferência!</p><p>*** IMPRESSÃO ILIMITADA ATIVA ***</p></div>
         </div>
 
-        <button id="domPrintBtn" class="action-btn btn-locked" disabled onclick="executarImpressaoHardware()">Imprimir via Bluetooth</button>
+        <button id="domPrintBtn" class="action-btn btn-active" onclick="executarImpressaoHardware()">Imprimir via Bluetooth</button>
     </div>
 
 </div>
@@ -126,7 +121,6 @@
 
     function buscarDadosPlanilha() {
         const listContainer = document.getElementById('domOrdersList');
-        listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Sincronizando com o Google Sheets...</p>';
         
         fetch(SHEET_URL)
             .then(res => res.text())
@@ -145,9 +139,6 @@
                         const cartao = row.c[3] ? String(row.c[3].v) : "";
                         const endereco = row.c[4] ? String(row.c[4].v) : "";
                         
-                        // ENGENHARIA DE SEGURANÇA MÁXIMA: 
-                        // Agora incluímos o texto do 'pedido' e o 'index' da linha no Hash de travamento.
-                        // Mesmo se o mesmo cliente pedir 5 vezes o mesmo produto no mesmo minuto, cada linha terá um Hash único e exclusivo.
                         const uniqueHash = btoa(encodeURIComponent(nome + endereco + cartao + pedido + index)).substring(0, 16);
                         const jaImpresso = localStorage.getItem(uniqueHash) === "true";
 
@@ -157,31 +148,28 @@
                     }
                 });
 
-                cachePedidos.reverse(); // Últimos pedidos entram no topo da tela
+                cachePedidos.reverse();
                 renderizarListaPedidos();
             })
             .catch(err => {
-                listContainer.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 40px 0;">Erro ao conectar com a Planilha.</p>';
+                listContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 40px 0;">Erro ao conectar com a Planilha.</p>';
             });
     }
 
     function renderizarListaPedidos() {
         const listContainer = document.getElementById('domOrdersList');
-        if(cachePedidos.length === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Nenhum pedido pendente.</p>';
-            return;
-        }
-
         listContainer.innerHTML = "";
+        
         cachePedidos.forEach((item, index) => {
-            const cardClass = item.impresso ? 'order-card printed-lock' : 'order-card';
-            const badgeText = item.impresso ? '🔒 IMPRESSO' : '🟢 NOVO PEDIDO';
+            // Apenas marcador visual, sem interferir no clique ou no bloqueio
+            const badgeText = item.impresso ? '✓ ENVIADO' : '🟢 NOVO';
+            const badgeStyle = item.impresso ? 'background: rgba(255,255,255,0.05); color: var(--text-muted); border-color: var(--border-subtle);' : '';
             
             const html = `
-                <div class="${cardClass}" id="card-item-${index}" onclick="selecionarPedido(${index})">
+                <div class="order-card" id="card-item-${index}" onclick="selecionarPedido(${index})">
                     <div class="card-top">
                         <span class="client-name">${item.nome}</span>
-                        <span class="order-status-badge">${badgeText}</span>
+                        <span class="order-status-badge" style="${badgeStyle}">${badgeText}</span>
                     </div>
                     <div class="card-details">
                         <div><strong>Endereço:</strong> ${item.endereco}</div>
@@ -200,50 +188,36 @@
         const item = cachePedidos[index];
 
         document.querySelectorAll('.order-card').forEach(c => c.classList.remove('selected'));
-        
         const selectedCard = document.getElementById(`card-item-${index}`);
         if(selectedCard) selectedCard.classList.add('selected');
 
-        // INJEÇÃO METICULOSA DA DATA, HORA, MINUTO E SEGUNDO NO RECIBO
         const agora = new Date();
-        const dataFormatada = agora.toLocaleDateString('pt-BR');
-        const horaFormatada = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-        document.getElementById('tkData').innerText = `Data: ${dataFormatada} - ${horaFormatada}`;
+        document.getElementById('tkData').innerText = `Data: ${agora.toLocaleDateString('pt-BR')} - ${agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
 
         document.getElementById('tkNome').innerText = item.nome;
         document.getElementById('tkWhats').innerText = item.whats;
         document.getElementById('tkCartao').innerText = item.cartao;
         document.getElementById('tkEnd').innerText = item.endereco;
         document.getElementById('tkItens').innerText = item.pedido;
-
-        const btn = document.getElementById('domPrintBtn');
-        if(item.impresso) {
-            btn.className = "action-btn btn-locked";
-            btn.innerText = "🔒 JÁ IMPRESSO (BLOQUEADO)";
-            btn.disabled = true;
-        } else {
-            btn.className = "action-btn btn-active";
-            btn.innerText = "Imprimir via Bluetooth";
-            btn.disabled = false;
-        }
     }
 
-    function ejecutarImpressaoHardware() {
-        if(pedidoSelecionadoIdx === null) return;
-        const item = cachePedidos[pedidoSelecionadoIdx];
-
-        if(item.impresso) {
-            alert("Erro: Este pedido já foi processado e impresso!");
+    function executarImpressaoHardware() {
+        if(pedidoSelecionadoIdx === null) {
+            alert("Selecione um pedido primeiro!");
             return;
         }
+        
+        const item = cachePedidos[pedidoSelecionadoIdx];
 
-        window.print(); // Abre o gerenciador bluetooth/sistema
+        // Dispara o sinal direto para o RawBT no Android
+        window.print();
 
-        // Aplica a trava de segurança na memória local do navegador para esta linha específica
+        // Salva apenas como histórico visual, sem travar o botão
         localStorage.setItem(item.hash, "true");
         item.impresso = true;
 
-        buscarDadosPlanilha(); // Atualiza a tela aplicando o bloqueio visual instantaneamente
+        // Atualiza a lista silenciosamente mantendo o botão ativo para novos cliques
+        renderizarListaPedidos();
     }
 </script>
 
