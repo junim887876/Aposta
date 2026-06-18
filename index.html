@@ -2,409 +2,263 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CopaBet 2026 | Bolão Oficial</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        // === CONFIGURAÇÃO DO SEU FIREBASE ===
-        // Você vai substituir os dados abaixo pelos do seu projeto Firebase!
-        const firebaseConfig = {
-            apiKey: "AIzaSyBIbw2TaSFECl_GlwIsQaNrFN641_35nOo",
-            authDomain: "copabet2026-f5d5c.firebaseapp.com",
-            projectId: "copabet2026-f5d5c",
-            storageBucket: "copabet2026-f5d5c.firebasestorage.app",
-            messagingSenderId: "298520405650",
-            appId: "1:298520405650:web:9ef3cc22af1d9643fde84b"
-        };
-
-        // Inicialização do Firebase (Tratamento para não dar erro na tela de preview)
-        let app, auth, db;
-        try {
-            app = initializeApp(typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } catch (e) { console.log("Firebase aguardando configuração real."); }
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'copabet-oficial';
-
-        // Tabela Oficial da Primeira Rodada da Copa 2026 (48 Seleções)
-        const matches = [
-            // Grupo A
-            { id: 'm1', teamA: 'México', flagA: 'mx', teamB: 'África do Sul', flagB: 'za', date: '2026-06-11T16:00:00-03:00', group: 'Grupo A' },
-            { id: 'm2', teamA: 'Coreia do Sul', flagA: 'kr', teamB: 'Rep. Tcheca', flagB: 'cz', date: '2026-06-11T23:00:00-03:00', group: 'Grupo A' },
-            // Grupo B
-            { id: 'm3', teamA: 'Canadá', flagA: 'ca', teamB: 'Bósnia e Herz.', flagB: 'ba', date: '2026-06-12T16:00:00-03:00', group: 'Grupo B' },
-            { id: 'm4', teamA: 'Catar', flagA: 'qa', teamB: 'Suíça', flagB: 'ch', date: '2026-06-13T16:00:00-03:00', group: 'Grupo B' },
-            // Grupo C
-            { id: 'm5', teamA: 'Brasil', flagA: 'br', teamB: 'Marrocos', flagB: 'ma', date: '2026-06-13T19:00:00-03:00', group: 'Grupo C' },
-            { id: 'm6', teamA: 'Haiti', flagA: 'ht', teamB: 'Escócia', flagB: 'gb-sct', date: '2026-06-13T22:00:00-03:00', group: 'Grupo C' },
-            // Grupo D
-            { id: 'm7', teamA: 'EUA', flagA: 'us', teamB: 'Paraguai', flagB: 'py', date: '2026-06-12T22:00:00-03:00', group: 'Grupo D' },
-            { id: 'm8', teamA: 'Austrália', flagA: 'au', teamB: 'Turquia', flagB: 'tr', date: '2026-06-14T01:00:00-03:00', group: 'Grupo D' },
-            // Grupo E
-            { id: 'm9', teamA: 'Alemanha', flagA: 'de', teamB: 'Curaçao', flagB: 'cw', date: '2026-06-14T14:00:00-03:00', group: 'Grupo E' },
-            { id: 'm10', teamA: 'Costa do Marfim', flagA: 'ci', teamB: 'Equador', flagB: 'ec', date: '2026-06-14T20:00:00-03:00', group: 'Grupo E' },
-            // Grupo F
-            { id: 'm11', teamA: 'Holanda', flagA: 'nl', teamB: 'Japão', flagB: 'jp', date: '2026-06-14T17:00:00-03:00', group: 'Grupo F' },
-            { id: 'm12', teamA: 'Suécia', flagA: 'se', teamB: 'Tunísia', flagB: 'tn', date: '2026-06-14T23:00:00-03:00', group: 'Grupo F' },
-            // Grupo G
-            { id: 'm13', teamA: 'Bélgica', flagA: 'be', teamB: 'Egito', flagB: 'eg', date: '2026-06-15T16:00:00-03:00', group: 'Grupo G' },
-            { id: 'm14', teamA: 'Irã', flagA: 'ir', teamB: 'Nova Zelândia', flagB: 'nz', date: '2026-06-15T22:00:00-03:00', group: 'Grupo G' },
-            // Grupo H
-            { id: 'm15', teamA: 'Espanha', flagA: 'es', teamB: 'Cabo Verde', flagB: 'cv', date: '2026-06-15T13:00:00-03:00', group: 'Grupo H' },
-            { id: 'm16', teamA: 'Arábia Saudita', flagA: 'sa', teamB: 'Uruguai', flagB: 'uy', date: '2026-06-15T19:00:00-03:00', group: 'Grupo H' },
-            // Grupo I
-            { id: 'm17', teamA: 'França', flagA: 'fr', teamB: 'Senegal', flagB: 'sn', date: '2026-06-16T16:00:00-03:00', group: 'Grupo I' },
-            { id: 'm18', teamA: 'Iraque', flagA: 'iq', teamB: 'Noruega', flagB: 'no', date: '2026-06-16T19:00:00-03:00', group: 'Grupo I' },
-            // Grupo J
-            { id: 'm19', teamA: 'Argentina', flagA: 'ar', teamB: 'Argélia', flagB: 'dz', date: '2026-06-16T22:00:00-03:00', group: 'Grupo J' },
-            { id: 'm20', teamA: 'Áustria', flagA: 'at', teamB: 'Jordânia', flagB: 'jo', date: '2026-06-17T01:00:00-03:00', group: 'Grupo J' },
-            // Grupo K
-            { id: 'm21', teamA: 'Portugal', flagA: 'pt', teamB: 'RD Congo', flagB: 'cd', date: '2026-06-17T20:00:00-03:00', group: 'Grupo K' },
-            { id: 'm22', teamA: 'Uzbequistão', flagA: 'uz', teamB: 'Colômbia', flagB: 'co', date: '2026-06-18T10:00:00-03:00', group: 'Grupo K' },
-            // Grupo L
-            { id: 'm23', teamA: 'Inglaterra', flagA: 'gb-eng', teamB: 'Croácia', flagB: 'hr', date: '2026-06-17T15:00:00-03:00', group: 'Grupo L' },
-            { id: 'm24', teamA: 'Gana', flagA: 'gh', teamB: 'Panamá', flagB: 'pa', date: '2026-06-17T18:00:00-03:00', group: 'Grupo L' }
-        ];
-
-        let currentUser = null;
-        let myBets = {};
-
-        async function initAuth() {
-            if(!auth) return;
-            try {
-                await signInAnonymously(auth);
-            } catch (error) { console.error("Erro de Auth:", error); }
-        }
-
-        if(auth) {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    checkUserRegistration(user);
-                    loadMyBets();
-                    loadRanking();
-                }
-            });
-        }
-
-        async function checkUserRegistration(user) {
-            const username = localStorage.getItem('copabet_username');
-            if (!username) {
-                document.getElementById('login-modal').classList.remove('hidden');
-            } else {
-                document.getElementById('user-name-display').innerText = username;
-                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'ranking', user.uid);
-                getDoc(userRef).then(docSnap => {
-                    if (!docSnap.exists()) setDoc(userRef, { username: username, points: 0 });
-                });
-            }
-        }
-
-        window.registerUser = async function() {
-            const input = document.getElementById('username-input').value.trim();
-            if (input.length < 3) return showToast("O nome deve ter pelo menos 3 letras.", "error");
-            
-            localStorage.setItem('copabet_username', input);
-            document.getElementById('user-name-display').innerText = input;
-            
-            if (currentUser && db) {
-                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'ranking', currentUser.uid);
-                await setDoc(userRef, { username: input, points: 0 });
-            }
-            
-            document.getElementById('login-modal').classList.add('hidden');
-            showToast("Conta criada! Boa sorte nas apostas.", "success");
-        }
-
-        window.switchTab = function(tabName) {
-            document.getElementById('tab-jogos').classList.add('hidden');
-            document.getElementById('tab-ranking').classList.add('hidden');
-            document.getElementById('btn-tab-jogos').classList.remove('text-yellow-400', 'border-b-2', 'border-yellow-400');
-            document.getElementById('btn-tab-ranking').classList.remove('text-yellow-400', 'border-b-2', 'border-yellow-400');
-
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            document.getElementById(`btn-tab-${tabName}`).classList.add('text-yellow-400', 'border-b-2', 'border-yellow-400');
-        }
-
-        function renderMatches() {
-            const container = document.getElementById('matches-container');
-            container.innerHTML = '';
-            const now = new Date();
-
-            matches.forEach(match => {
-                const matchDate = new Date(match.date);
-                const isLocked = now >= matchDate; // Aqui é onde a mágica do travamento acontece!
-                
-                const dateStr = matchDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-                const timeStr = matchDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-                const betA = myBets[match.id] ? myBets[match.id].scoreA : '';
-                const betB = myBets[match.id] ? myBets[match.id].scoreB : '';
-
-                const card = document.createElement('div');
-                card.className = `bg-slate-800 p-5 rounded-2xl border ${isLocked ? 'border-red-500/30 opacity-80' : 'border-slate-700 hover:border-yellow-500/50'} transition-all shadow-xl relative overflow-hidden`;
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        <span>${match.group}</span>
-                        <span class="${isLocked ? 'text-red-400' : 'text-yellow-400'} bg-slate-900 px-2 py-1 rounded-md">
-                            <i class="${isLocked ? 'fa-solid fa-lock' : 'fa-regular fa-clock'} mr-1"></i>
-                            ${dateStr} às ${timeStr}
-                        </span>
-                    </div>
-                    
-                    <div class="flex justify-between items-center mt-4">
-                        <div class="flex flex-col items-center w-[30%]">
-                            <img src="https://flagcdn.com/w80/${match.flagA}.png" alt="${match.teamA}" class="w-14 h-10 object-cover rounded shadow-md mb-2 border border-slate-600">
-                            <span class="text-xs font-bold text-center leading-tight">${match.teamA}</span>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2 w-[40%] justify-center">
-                            <input type="number" min="0" id="bet-${match.id}-A" value="${betA}" 
-                                class="w-12 h-12 bg-slate-900 border-2 border-slate-700 text-center text-xl font-bold text-white rounded focus:outline-none focus:border-yellow-400 disabled:opacity-50 disabled:bg-slate-800"
-                                ${isLocked ? 'disabled' : ''}>
-                            <span class="text-slate-500 font-bold text-sm">X</span>
-                            <input type="number" min="0" id="bet-${match.id}-B" value="${betB}" 
-                                class="w-12 h-12 bg-slate-900 border-2 border-slate-700 text-center text-xl font-bold text-white rounded focus:outline-none focus:border-yellow-400 disabled:opacity-50 disabled:bg-slate-800"
-                                ${isLocked ? 'disabled' : ''}>
-                        </div>
-                        
-                        <div class="flex flex-col items-center w-[30%]">
-                            <img src="https://flagcdn.com/w80/${match.flagB}.png" alt="${match.teamB}" class="w-14 h-10 object-cover rounded shadow-md mb-2 border border-slate-600">
-                            <span class="text-xs font-bold text-center leading-tight">${match.teamB}</span>
-                        </div>
-                    </div>
-                    
-                    ${!isLocked ? `
-                        <button onclick="saveBet('${match.id}')" class="mt-5 w-full py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-slate-900 text-sm font-bold rounded-lg shadow-lg transition-all">
-                            Salvar Palpite
-                        </button>
-                    ` : `
-                        <div class="mt-5 w-full py-2.5 bg-slate-900/50 text-red-400 text-sm font-bold text-center rounded-lg border border-red-900/50">
-                            <i class="fa-solid fa-ban mr-1"></i> Partida Travada
-                        </div>
-                    `}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        window.saveBet = async function(matchId) {
-            if (!currentUser || !db) return showToast("Aguarde a conexão com o banco...", "error");
-            
-            const scoreA = document.getElementById(`bet-${matchId}-A`).value;
-            const scoreB = document.getElementById(`bet-${matchId}-B`).value;
-
-            if (scoreA === '' || scoreB === '') return showToast('Preencha os dois placares!', 'error');
-
-            const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
-
-            try {
-                const betRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bets', matchId);
-                await setDoc(betRef, { scoreA: parseInt(scoreA), scoreB: parseInt(scoreB) });
-                myBets[matchId] = { scoreA, scoreB };
-                showToast('Palpite salvo!', 'success');
-            } catch (error) {
-                showToast('Erro ao salvar no banco.', 'error');
-            } finally {
-                btn.innerHTML = originalText;
-            }
-        }
-
-        function loadMyBets() {
-            if (!currentUser || !db) return;
-            const betsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bets');
-            onSnapshot(betsRef, (snapshot) => {
-                snapshot.forEach(doc => { myBets[doc.id] = doc.data(); });
-                renderMatches();
-            });
-        }
-
-        function loadRanking() {
-            if(!db) return;
-            const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
-            onSnapshot(rankingRef, (snapshot) => {
-                const rankingList = document.getElementById('ranking-list');
-                rankingList.innerHTML = '';
-                let users = [];
-                snapshot.forEach(doc => { users.push({ id: doc.id, ...doc.data() }); });
-                users.sort((a, b) => b.points - a.points);
-
-                if (users.length === 0 || (users.length === 1 && users[0].points === 0)) {
-                    users.push({ id: 'dummy1', username: 'MestreDasApostas', points: 15 });
-                    users.push({ id: 'dummy2', username: 'FutebolArteBR', points: 12 });
-                    users.push({ id: 'dummy3', username: 'ZicaDoPântano', points: 8 });
-                    users.sort((a, b) => b.points - a.points);
-                }
-
-                users.forEach((user, index) => {
-                    const isMe = currentUser && user.id === currentUser.uid;
-                    const position = index + 1;
-                    
-                    let medal = `<span class="text-slate-500 font-bold w-8 text-center">${position}º</span>`;
-                    if (position === 1) medal = `<i class="fa-solid fa-trophy text-yellow-400 text-xl w-8 text-center drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"></i>`;
-                    if (position === 2) medal = `<i class="fa-solid fa-medal text-gray-300 text-xl w-8 text-center"></i>`;
-                    if (position === 3) medal = `<i class="fa-solid fa-medal text-amber-600 text-xl w-8 text-center"></i>`;
-
-                    const row = document.createElement('div');
-                    row.className = `flex items-center justify-between p-4 rounded-xl mb-3 ${isMe ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-slate-800'}`;
-                    row.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            ${medal}
-                            <span class="font-bold ${isMe ? 'text-yellow-400' : 'text-white'} text-lg">${user.username} ${isMe ? '(Você)' : ''}</span>
-                        </div>
-                        <div class="bg-slate-900 px-4 py-2 rounded-lg border border-slate-700 shadow-inner">
-                            <span class="text-xl font-black text-white">${user.points} <span class="text-xs font-normal text-slate-400 uppercase">pts</span></span>
-                        </div>
-                    `;
-                    rankingList.appendChild(row);
-                    if (isMe) document.getElementById('user-points-display').innerText = user.points;
-                });
-            });
-        }
-
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.className = `fixed bottom-5 right-5 text-white px-6 py-3 rounded-xl font-bold shadow-2xl transition-all transform translate-y-0 opacity-100 z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
-            setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0'), 3000);
-        }
-
-        setInterval(() => {
-            if (!document.getElementById('tab-jogos').classList.contains('hidden')) renderMatches();
-        }, 30000); // Atualiza os travamentos a cada 30 segundos
-
-        window.onload = () => {
-            initAuth();
-            renderMatches();
-            
-            // Verifica se o usuário precisa preencher o Firebase pra funcionar no Github
-            if(firebaseConfig.apiKey === "SUA_API_KEY") {
-               setTimeout(() => {
-                   document.getElementById('firebase-warning').classList.remove('hidden');
-               }, 1000);
-            }
-        };
-
-    </script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Despacho | Black Concierge</title>
     <style>
-        body { font-family: 'Poppins', sans-serif; }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        :root {
+            --bg-main: #000000;
+            --bg-card: #121214;
+            --bg-input: #1c1c1f;
+            --gold: #d4af37;
+            --gold-muted: rgba(212, 175, 55, 0.2);
+            --text-white: #ffffff;
+            --text-muted: #a1a1aa;
+            --border-subtle: #27272a;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+        body { background-color: var(--bg-main); color: var(--text-white); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+
+        .dashboard-container { width: 100%; max-width: 1000px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
+
+        @media (max-width: 850px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+        }
+
+        /* Coluna Esquerda: Feed de Pedidos */
+        .orders-feed { display: flex; flex-direction: column; gap: 16px; }
+        
+        .feed-header { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 16px 20px; border-radius: 16px; border: 1px solid var(--border-subtle); }
+        .feed-header h2 { font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--gold); }
+        
+        .sync-btn { background: var(--gold); color: black; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .sync-btn:active { transform: scale(0.95); }
+
+        .orders-list { display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; padding-right: 4px; }
+        
+        /* Card de Pedido */
+        .order-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 16px; transition: 0.3s; position: relative; cursor: pointer; }
+        .order-card:hover { border-color: rgba(212,175,55,0.4); }
+        .order-card.selected { border-color: var(--gold); background: rgba(212,175,55,0.02); }
+        
+        /* Estado Impresso (Bloqueado) */
+        .order-card.printed-lock { border-color: #1a1a1a; background: #080809; opacity: 0.6; }
+        .order-card.printed-lock .order-status-badge { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .client-name { font-size: 16px; font-weight: 700; color: #fff; }
+        .order-status-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        .card-details { font-size: 13px; color: var(--text-muted); display: grid; gap: 4px; }
+        .card-details strong { color: var(--gold); }
+
+        /* Coluna Direita: Impressora */
+        .printer-station { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; align-items: center; height: fit-content; position: sticky; top: 20px; }
+        
+        /* Emulação de Cupom Térmico Portátil */
+        .thermal-ticket {
+            background: #ffffff; color: #000000; width: 58mm; min-height: 90mm; padding: 8px;
+            font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.3;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7); border-radius: 4px; margin-bottom: 20px;
+        }
+        .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px; }
+        .ticket-header h3 { font-size: 13px; font-weight: bold; }
+        .ticket-header p { font-size: 9px; }
+        .ticket-sec { border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; font-size: 11px; }
+        .ticket-sec span { display: block; font-weight: bold; }
+        .ticket-footer { text-align: center; font-size: 9px; margin-top: 12px; border-top: 1px dashed #000; padding-top: 4px; }
+
+        .action-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-active { background: linear-gradient(135deg, var(--gold) 0%, #b8901c 100%); color: #000; box-shadow: 0 4px 15px rgba(212,175,55,0.25); }
+        .btn-locked { background: #27272a !important; color: var(--text-muted) !important; cursor: not-allowed !important; box-shadow: none !important; border: 1px solid var(--border-subtle); }
+
+        /* Estilos de Impressão de Hardware */
+        @media print {
+            body { background: #fff; padding: 0; }
+            .orders-feed, .feed-header, .action-btn, .printer-station { display: none !important; }
+            .printer-station { border: none; background: transparent; padding: 0; }
+            .thermal-ticket { width: 58mm; max-width: 58mm; box-shadow: none !important; padding: 0; margin: 0 auto; background: #fff; color: #000; }
+            @page { margin: 0; size: auto; }
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body>
 
-    <!-- Navbar Premium -->
-    <nav class="bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-2xl">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-earth-americas text-yellow-400 text-3xl"></i>
-                <h1 class="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-yellow-600">
-                    CopaBet<span class="text-slate-100">26</span>
-                </h1>
-            </div>
-            
-            <div class="flex items-center space-x-3 bg-slate-800 rounded-full px-4 py-1.5 border border-slate-700">
-                <i class="fa-solid fa-user-circle text-slate-400 text-xl"></i>
-                <div class="flex flex-col text-sm leading-tight">
-                    <span id="user-name-display" class="font-bold text-white truncate max-w-[80px] sm:max-w-[150px]">Visitante</span>
-                    <span class="text-yellow-400 font-bold text-[11px] uppercase"><span id="user-points-display">0</span> pontos</span>
-                </div>
-            </div>
+<div class="dashboard-container">
+    
+    <div class="orders-feed">
+        <div class="feed-header">
+            <h2>Pedidos na Planilha</h2>
+            <button class="sync-btn" onclick="buscarDadosPlanilha()">🔄 Sincronizar</button>
         </div>
-
-        <div class="max-w-6xl mx-auto px-4 flex space-x-6">
-            <button id="btn-tab-jogos" onclick="switchTab('jogos')" class="py-3 px-2 font-bold text-yellow-400 border-b-2 border-yellow-400 transition-colors uppercase text-sm tracking-wide">
-                <i class="fa-solid fa-calendar-days mr-1"></i> Rodada 1
-            </button>
-            <button id="btn-tab-ranking" onclick="switchTab('ranking')" class="py-3 px-2 font-bold text-slate-400 hover:text-white transition-colors uppercase text-sm tracking-wide">
-                <i class="fa-solid fa-ranking-star mr-1"></i> Ranking
-            </button>
-        </div>
-    </nav>
-
-    <!-- Alerta Educativo para GitHub -->
-    <div id="firebase-warning" class="hidden max-w-6xl mx-auto px-4 mt-4 animate-bounce">
-        <div class="bg-blue-900/50 border border-blue-500 p-4 rounded-xl text-blue-200 text-sm">
-            <i class="fa-solid fa-circle-info mr-2 text-blue-400"></i>
-            <strong>Nota do Desenvolvedor:</strong> Lembre-se de colocar as chaves do seu Firebase no código antes de jogar no GitHub Pages!
+        <div class="orders-list" id="domOrdersList">
+            <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Carregando banco de dados...</p>
         </div>
     </div>
 
-    <!-- Conteúdo -->
-    <main class="max-w-6xl mx-auto px-4 py-6">
-        
-        <!-- ABA: JOGOS -->
-        <div id="tab-jogos" class="block">
-            <div class="mb-6 flex justify-between items-center">
-                <h2 class="text-xl md:text-2xl font-bold text-white"><i class="fa-solid fa-pen-to-square text-yellow-500 mr-2"></i>Palpites da 1ª Rodada</h2>
-                <span class="text-[10px] md:text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-                    <i class="fa-solid fa-lock text-red-400 mr-1"></i> Trava no apito inicial
-                </span>
+    <div class="printer-station">
+        <div class="thermal-ticket" id="domTicket">
+            <div class="ticket-header">
+                <h3>BLACK CONCIERGE</h3>
+                <p>CONTROLE DE DESPACHO VIP</p>
+                <p id="tkData">Data: --/--/---- --:--</p>
             </div>
-            
-            <div id="matches-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Javascript injeta os jogos aqui -->
-            </div>
+            <div class="ticket-sec"><span>CLIENTE:</span><div id="tkNome">Selecione um pedido...</div></div>
+            <div class="ticket-sec"><span>WHATSAPP:</span><div id="tkWhats">--</div></div>
+            <div class="ticket-sec"><span>ID CARTÃO:</span><div id="tkCartao">--</div></div>
+            <div class="ticket-sec"><span>ENDEREÇO:</span><div id="tkEnd">--</div></div>
+            <div class="ticket-sec"><span>PEDIDO COMPLETO:</span><div id="tkItens" style="white-space: pre-wrap;">--</div></div>
+            <div class="ticket-footer"><p>Muito Obrigado Pela Preferência!</p></div>
         </div>
 
-        <!-- ABA: RANKING -->
-        <div id="tab-ranking" class="hidden">
-            <div class="mb-8 text-center">
-                <i class="fa-solid fa-crown text-yellow-400 text-5xl mb-3 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
-                <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-widest">Global Ranking</h2>
-                <p class="text-slate-400 text-sm mt-2">Acerte o placar para subir na tabela de milionários da Copa.</p>
-            </div>
+        <button id="domPrintBtn" class="action-btn btn-locked" disabled onclick="executarImpressaoHardware()">Imprimir via Bluetooth</button>
+    </div>
 
-            <div class="bg-slate-900/50 p-3 md:p-5 rounded-2xl border border-slate-700 shadow-2xl max-w-3xl mx-auto">
-                <div id="ranking-list" class="flex flex-col">
-                    <div class="text-center py-10 text-slate-500">
-                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i>
-                        <p>Carregando o ranking ao vivo...</p>
+</div>
+
+<script>
+    // URL Estruturada para capturar o JSON da sua planilha pública automaticamente
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/12SKPvrmT-FPp_igfoAZ7XGsBPEBsP9ETwLNxW5lg_dI/gviz/tq?tqx=out:json';
+    
+    let cachePedidos = [];
+    let pedidoSelecionadoIdx = null;
+
+    // Inicialização automática
+    window.onload = () => {
+        buscarDadosPlanilha();
+    };
+
+    function buscarDadosPlanilha() {
+        const listContainer = document.getElementById('domOrdersList');
+        listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Sincronizando com o Google Sheets...</p>';
+        
+        fetch(SHEET_URL)
+            .then(res => res.text())
+            .then(data => {
+                // Remove a proteção padrão do Google para isolar o JSON puro
+                const jsonString = data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1);
+                const json = JSON.parse(jsonString);
+                const rows = json.table.rows;
+                
+                cachePedidos = [];
+                
+                // Mapeia dinamicamente as colunas baseado na engenharia de dados do seu formulário
+                rows.forEach((row, index) => {
+                    // Evita processar cabeçalhos ou linhas vazias indesejadas
+                    if(row.c && row.c[0] && row.c[0].v !== "NOME") {
+                        const nome = row.c[0] ? String(row.c[0].v) : "";
+                        const whats = row.c[1] ? String(row.c[1].v) : "";
+                        const pedido = row.c[2] ? String(row.c[2].v) : "";
+                        const cartao = row.c[3] ? String(row.c[3].v) : "";
+                        const endereco = row.c[4] ? String(row.c[4].v) : "";
+                        
+                        // Chave criptográfica local para travar o status de impressão de forma permanente
+                        const uniqueHash = btoa(encodeURIComponent(nome + endereco + cartao)).substring(0, 16);
+                        const jaImpresso = localStorage.getItem(uniqueHash) === "true";
+
+                        cachePedidos.push({
+                            nome, whats, pedido, cartao, endereco, hash: uniqueHash, impresso: jaImpresso
+                        });
+                    }
+                });
+
+                // Inverte a ordem para exibir os pedidos mais recentes sempre no topo do feed
+                cachePedidos.reverse();
+                renderizarListaPedidos();
+            })
+            .catch(err => {
+                listContainer.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 40px 0;">Erro ao conectar com a Planilha. Verifique o compartilhamento.</p>';
+            });
+    }
+
+    function renderizarListaPedidos() {
+        const listContainer = document.getElementById('domOrdersList');
+        if(cachePedidos.length === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Nenhum pedido encontrado na planilha.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = "";
+        cachePedidos.forEach((item, index) => {
+            const cardClass = item.impresso ? 'order-card printed-lock' : 'order-card';
+            const badgeText = item.impresso ? '🔒 IMPRESSO (BLOQUEADO)' : '🟢 PENDENTE';
+            
+            const html = `
+                <div class="${cardClass}" id="card-item-${index}" onclick="selecionarPedido(${index})">
+                    <div class="card-top">
+                        <span class="client-name">${item.nome}</span>
+                        <span class="order-status-badge">${badgeText}</span>
+                    </div>
+                    <div class="card-details">
+                        <div><strong>Endereço:</strong> ${item.endereco}</div>
+                        <div><strong>Cartão Black:</strong> ${item.cartao}</div>
                     </div>
                 </div>
-            </div>
-        </div>
+            `;
+            listContainer.insertAdjacentHTML('beforeend', html);
+        });
 
-    </main>
+        // Mantém a seleção visual ativa se houver atualização automática
+        if(pedidoSelecionadoIdx !== null) selecionarPedido(pedidoSelecionadoIdx);
+    }
 
-    <!-- Modal de Login -->
-    <div id="login-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden">
-        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 text-yellow-500/10 text-9xl"><i class="fa-solid fa-futbol"></i></div>
-            
-            <div class="relative z-10">
-                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
-                    <i class="fa-solid fa-user-astronaut text-slate-900 text-3xl"></i>
-                </div>
-                <h3 class="text-2xl font-black text-white mb-2">Seu Nome no Bolão</h3>
-                <p class="text-slate-400 text-sm mb-6">Cadastre seu nome para salvar suas apostas no servidor e disputar o ranking.</p>
-                
-                <input type="text" id="username-input" placeholder="Ex: João Silva" class="w-full bg-slate-800 border-2 border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-yellow-500 mb-4 text-center font-bold">
-                
-                <button onclick="registerUser()" class="w-full py-3 bg-gradient-to-r from-yellow-500 to-yellow-400 text-slate-900 font-bold rounded-xl shadow-lg hover:shadow-yellow-500/20 transition-all uppercase tracking-wide">
-                    Entrar no Jogo <i class="fa-solid fa-arrow-right ml-2"></i>
-                </button>
-            </div>
-        </div>
-    </div>
+    function selecionarPedido(index) {
+        pedidoSelecionadoIdx = index;
+        const item = cachePedidos[index];
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 translate-y-20 opacity-0 z-50 transition-all duration-300"></div>
+        // Remove seleção visual de todos os outros cards
+        document.querySelectorAll('.order-card').forEach(c => c.classList.remove('selected'));
+        
+        const selectedCard = document.getElementById(`card-item-${index}`);
+        if(selectedCard) selectedCard.classList.add('selected');
+
+        // Formatação do carimbo de data no cupom físico
+        const agora = new Date();
+        document.getElementById('tkData').innerText = `Data: ${agora.toLocaleDateString('pt-BR')} - ${agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
+
+        // Injeta os dados limpos no Preview Térmico
+        document.getElementById('tkNome').innerText = item.nome;
+        document.getElementById('tkWhats').innerText = item.whats;
+        document.getElementById('tkCartao').innerText = item.cartao;
+        document.getElementById('tkEnd').innerText = item.endereco;
+        document.getElementById('tkItens').innerText = item.pedido;
+
+        // VALIDAÇÃO DE SEGURANÇA MÁXIMA: Se já foi impresso, destrói e bloqueia o botão de disparo
+        const btn = document.getElementById('domPrintBtn');
+        if(item.impresso) {
+            btn.className = "action-btn btn-locked";
+            btn.innerText = "🔒 JÁ IMPRESSO (BLOQUEADO)";
+            btn.disabled = true;
+        } else {
+            btn.className = "action-btn btn-active";
+            btn.innerText = "Imprimir via Bluetooth";
+            btn.disabled = false;
+        }
+    }
+
+    function executarImpressaoHardware() {
+        if(pedidoSelecionadoIdx === null) return;
+        const item = cachePedidos[pedidoSelecionadoIdx];
+
+        if(item.impresso) {
+            alert("Erro de segurança: Este pedido já foi impresso e não pode ser duplicado!");
+            return;
+        }
+
+        // Envia o sinal de renderização para o spooler nativo de impressão
+        window.print();
+
+        // SALVA O TRAVAMENTO NO ARQUIVO LOCAL DO DISPOSITIVO
+        localStorage.setItem(item.hash, "true");
+        item.impresso = true;
+
+        // Atualiza a interface instantaneamente aplicando o bloqueio eletrônico
+        buscarDadosPlanilha();
+    }
+</script>
 
 </body>
 </html>
