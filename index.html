@@ -1,272 +1,480 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>SolarInvest ADM - Painel de Faturamento e Lucro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Three.js, GLTFLoader e OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'app-bg': '#191266',
+                        'app-dark-blue': '#130d4d',
+                        'app-green': '#00c853',
+                        'app-red': '#ff3d00',
+                        'app-orange': '#ff9100'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-main: #000000;
-            --bg-card: #121214;
-            --bg-input: #1c1c1f;
-            --gold: #d4af37;
-            --text-white: #ffffff;
-            --text-muted: #a1a1aa;
-            --border-subtle: #27272a;
-            --success: #22c55e;
-            --shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
+        html, body { touch-action: manipulation; }
+        body { background-color: #191266; color: white; -webkit-tap-highlight-color: transparent; overflow-y: auto; overflow-x: hidden; }
+        ::-webkit-scrollbar { display: none; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-main); color: var(--text-white); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .dashboard-container { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
-        @media (max-width: 900px) { .dashboard-container { grid-template-columns: 1fr; } }
+        .glass-header { background: rgba(25, 18, 102, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 
-        /* PAINEL ESQUERDO: FEED DE PEDIDOS LIVE */
-        .orders-feed { display: flex; flex-direction: column; gap: 16px; }
-        .feed-header { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 16px 20px; border-radius: 18px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow); }
-        .feed-header h2 { font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; }
-        .sync-btn { background: var(--gold); color: black; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
-        .sync-btn:active { transform: scale(0.95); }
+        #canvas-container { position: fixed; top: 0; left: 0; right: 0; height: 35vh; z-index: 1; pointer-events: auto; }
+        .bg-night { background: linear-gradient(to bottom, #0f0a42 0%, #191266 100%) !important; }
 
-        .orders-list { display: flex; flex-direction: column; gap: 12px; max-height: 78vh; overflow-y: auto; padding-right: 4px; }
-        .orders-list::-webkit-scrollbar { width: 6px; }
-        .orders-list::-webkit-scrollbar-track { background: transparent; }
-        .orders-list::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
+        #content-wrapper { position: relative; z-index: 10; width: 100%; max-width: 450px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+        .hero-spacer { height: 28vh; width: 100%; pointer-events: none; flex-shrink: 0; }
         
-        .order-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 18px; transition: all 0.2s ease; position: relative; cursor: pointer; box-shadow: var(--shadow); }
-        .order-card:hover { border-color: rgba(212,175,55,0.4); transform: translateY(-2px); }
-        .order-card.selected { border-color: var(--gold); background: rgba(212,175,55,0.03); }
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .client-name { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
-        .order-status-badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 0.5px; }
-        .card-details { font-size: 13px; color: var(--text-muted); display: grid; gap: 5px; line-height: 1.4; }
-        .card-details strong { color: var(--gold); font-weight: 600; }
+        .fade-in { animation: fadeIn 0.35s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PAINEL DIREITO: ESTAÇÃO TÉRMICA */
-        .printer-station { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; align-items: center; height: fit-content; position: sticky; top: 20px; box-shadow: var(--shadow); }
-        
-        /* Preview da Bobina Física (58mm) */
-        .thermal-ticket {
-            background: #ffffff; color: #000000; width: 100%; max-width: 58mm; min-height: 100mm; 
-            padding: 12px; font-family: 'Courier New', Courier, monospace; font-size: 12px; 
-            line-height: 1.4; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 4px; margin-bottom: 24px;
-        }
-        
-        .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-        .ticket-header h3 { font-size: 14px; font-weight: bold; letter-spacing: 1px; }
-        .ticket-header p { font-size: 9px; margin-top: 2px; }
-        .ticket-sec { border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px; }
-        .ticket-sec span { display: block; font-weight: bold; font-size: 10px; text-transform: uppercase; color: #333; }
-        .ticket-sec div { font-size: 12px; word-wrap: break-word; }
-        .ticket-footer { text-align: center; font-size: 9px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 6px; }
+        /* Estilo dos Cards idênticos ao Print enviado */
+        .admin-card { background: #ffffff; color: #1a202c; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+        .admin-card:active { transform: scale(0.98); }
+        .card-details-btn { background: #f4f5f7; color: #718096; font-size: 11px; font-weight: 600; text-align: center; padding: 10px; border-top: 1px solid #edf2f7; transition: background 0.2s; }
+        .card-details-btn:hover { background: #e2e8f0; color: #2d3748; }
 
-        .action-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; }
-        .btn-active { background: linear-gradient(135deg, var(--gold) 0%, #b8901c 100%); color: #000; box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
-        .btn-active:active { transform: scale(0.97); box-shadow: none; }
-        .btn-disabled { background: #27272a; color: var(--text-muted); cursor: not-allowed; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px); z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; background: #181d28; color: white; border-top-left-radius: 28px; border-top-right-radius: 28px; padding: 22px 24px 36px; z-index: 1001; border-top: 1px solid rgba(255,255,255,0.1); transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); max-height: 90vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.6); }
+        .modal-pill { width: 42px; height: 5px; background: rgba(255,255,255,0.25); border-radius: 10px; margin: 0 auto 18px; }
+
+        .spinner { border: 3px solid rgba(255,255,255,0.2); width: 28px; height: 28px; border-radius: 50%; border-left-color: #30d158; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <div class="orders-feed">
-        <div class="feed-header">
-            <h2>Pedidos Barbearia ONLINE</h2>
-            <button class="sync-btn" onclick="buscarDadosPlanilha()"><i class="fas fa-sync-alt"></i> Sincronizar</button>
-        </div>
-        <div class="orders-list" id="domOrdersList">
-            <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Conectando ao banco de dados...</p>
-        </div>
+    <!-- TELA DE CARREGAMENTO INICIAL -->
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#191266] flex flex-col justify-center items-center p-8 transition-opacity duration-500">
+        <i class="fa-solid fa-chart-line text-6xl text-app-green mb-6 animate-bounce"></i>
+        <h1 class="text-2xl font-black text-white mb-2">Painel ADM SolarInvest</h1>
+        <p class="text-xs text-blue-200 mb-6 font-medium">Carregando faturamento e dados dos clientes...</p>
+        <div class="spinner"></div>
     </div>
 
-    <div class="printer-station">
-        <div class="thermal-ticket" id="domTicket">
-            <div class="ticket-header">
-                <h3>BLACK CONCIERGE</h3>
-                <p>SERVICO DE BORDO VIP</p>
-                <p id="tkData">Data: --/--/---- --:--</p>
-            </div>
-            <div class="ticket-sec"><span>CLIENTE:</span><div id="tkNome">Selecione um pedido...</div></div>
-            <div class="ticket-sec"><span>WHATSAPP:</span><div id="tkWhats">--</div></div>
-            <div class="ticket-sec"><span>ID CARTÃO:</span><div id="tkCartao">--</div></div>
-            <div class="ticket-sec"><span>ENDEREÇO:</span><div id="tkEnd">--</div></div>
-            <div class="ticket-sec"><span>PRODUTOS SOLICITADOS:</span><div id="tkItens" style="white-space: pre-wrap;">--</div></div>
-            <div class="ticket-footer">
-                <p>Muito Obrigado Pela Preferencia!</p>
-                <p>*** RAWBT 58MM ***</p>
-            </div>
-        </div>
-        <button id="domPrintBtn" class="action-btn btn-disabled" disabled onclick="dispararIntentRawBT()"><i class="fas fa-print"></i> Imprimir via RawBT</button>
-    </div>
-</div>
+    <!-- FUNDO 3D INTERATIVO COMPACTO NO TOPO -->
+    <div id="canvas-container" class="bg-night"></div>
 
-<script>
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/12SKPvrmT-FPp_igfoAZ7XGsBPEBsP9ETwLNxW5lg_dI/gviz/tq?tqx=out:json';
-    let cachePedidos = [];
-    let pedidoSelecionadoIdx = null;
-
-    window.onload = () => { buscarDadosPlanilha(); };
-
-    function buscarDadosPlanilha() {
-        const listContainer = document.getElementById('domOrdersList');
-        listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;"><i class="fas fa-spinner fa-spin"></i> Baixando dados...</p>';
+    <!-- PAINEL ADM -->
+    <div id="admin-dashboard" class="relative z-10 w-full max-w-[450px] mx-auto min-h-screen flex flex-col pb-12">
         
-        fetch(SHEET_URL)
-            .then(res => res.text())
-            .then(data => {
-                const jsonString = data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1);
-                const json = JSON.parse(jsonString);
-                
-                // MOTOR DE LEITURA INTELIGENTE DE COLUNAS
-                // Descobre onde os dados estão baseados nos cabeçalhos (fallback seguro se estiverem em branco)
-                let map = { nome: 1, pedido: 2, cartao: 3, whats: 4, endereco: 1 };
-                if (json.table.cols) {
-                    json.table.cols.forEach((col, i) => {
-                        if(col && col.label) {
-                            let lbl = col.label.toLowerCase();
-                            if(lbl.includes('nome')) map.nome = i;
-                            if(lbl.includes('whats') || lbl.includes('telefone')) map.whats = i;
-                            if(lbl.includes('pedido') || lbl.includes('produto') || lbl.includes('bebida')) map.pedido = i;
-                            if(lbl.includes('id') || lbl.includes('cartão') || lbl.includes('cartao') || lbl.includes('black')) map.cartao = i;
-                            if(lbl.includes('endereço') || lbl.includes('endereco') || lbl.includes('entrega')) map.endereco = i;
-                        }
+        <div class="hero-spacer"></div>
+
+        <!-- CABEÇALHO DE FATURAMENTO / LUCRO (ESTILO PRINT PROVENTOS) -->
+        <div class="px-5 pt-2 pb-6 text-center z-20">
+            <!-- FILTRO DE MÊS DROPDOWN -->
+            <div class="inline-flex items-center gap-1.5 text-xs text-blue-200 font-bold uppercase tracking-wider mb-2 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/15 cursor-pointer">
+                <span>FATURAMENTO / LUCRO DE</span>
+                <select id="month-filter" class="bg-transparent text-white font-black cursor-pointer focus:outline-none uppercase" onchange="filterDataByMonth()">
+                    <option value="TODOS" class="bg-[#191266] text-white">TODOS OS MESES</option>
+                </select>
+                <i class="fa-solid fa-caret-down text-white text-xs ml-0.5"></i>
+            </div>
+
+            <!-- VALOR GIGANTE DO FATURAMENTO TOTAL -->
+            <h1 id="total-revenue-display" class="text-5xl font-black text-white tracking-tight my-1 drop-shadow-md">R$ 0,00</h1>
+            <p class="text-[11px] text-gray-300 font-medium">Lucro Bruto Recebido/Previsto da Usina</p>
+        </div>
+
+        <!-- LISTA DE CARDS DE CLIENTES (ESTILO AÇÕES / PROVENTOS) -->
+        <div class="flex-1 bg-[#191266] px-4 pt-2 space-y-3" id="cards-container">
+            <!-- Os cards dos clientes serão renderizados aqui dinamicamente -->
+        </div>
+    </div>
+
+    <!-- MODAL DETALHADO DA CONTA DO CLIENTE -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="modal-pill"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h3 id="modal-cliente-nome" class="text-xl font-black capitalize leading-tight">Cliente</h3>
+                <p id="modal-mes-sub" class="text-xs text-gray-400">Fatura do Mês</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="modal-status" class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">STATUS</span>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- DEMONSTRATIVO MINUCIOSO DE CUSTOS E LUCRO -->
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4 space-y-2.5 text-sm">
+            <div class="flex justify-between items-center text-gray-300">
+                <span>Consumo Medido:</span>
+                <span id="modal-kwh" class="font-bold text-white">0 kWh</span>
+            </div>
+            <div class="flex justify-between items-center text-gray-300">
+                <span>Custo de Energia (<span id="modal-tarifa-kwh">R$ 0,81</span>/kWh):</span>
+                <span id="modal-custo-kwh" class="font-semibold text-white">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between items-center text-gray-300">
+                <span>Taxa de Iluminação (CIP):</span>
+                <span id="modal-cip" class="font-semibold text-white">R$ 0,00</span>
+            </div>
+            <div class="border-t border-white/10 my-1 pt-2 flex justify-between items-center text-gray-400">
+                <span>Valor Concessionária Sem Desconto:</span>
+                <span id="modal-valor-bruto" class="line-through text-red-400 font-medium">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between items-center text-green-400 font-medium">
+                <span>Desconto Oferecido ao Cliente (20% OFF):</span>
+                <span id="modal-desconto">- R$ 0,00</span>
+            </div>
+        </div>
+
+        <!-- DESTAQUE PARA O LUCRO/RECEITA DA USINA -->
+        <div class="bg-gradient-to-br from-green-500/10 to-green-500/20 border border-green-500/30 rounded-2xl p-4 text-center">
+            <h4 class="text-xs text-green-300 font-medium mb-0.5 uppercase tracking-wider">Valor Cobrado / Lucro Usina</h4>
+            <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
+        </div>
+    </div>
+
+    <!-- LÓGICA DE DADOS E MOTOR 3D -->
+    <script>
+        const SHEET_ID = '1IxzUCFbGIxOMrCGnjfHNlB16ll64TKh75SDOV1oOnWw';
+        const TARIFA_KWH = 0.81;
+
+        let globalAllInvoices = [];
+        let currentFilteredInvoices = [];
+
+        window.onload = () => {
+            loadAdminData();
+        };
+
+        function parseCSV(str) {
+            const arr = []; let quote = false; let row = [], col = '';
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                if (cc === '\r') continue; 
+                if (cc === '"' && quote && nc === '"') { col += cc; ++c; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { row.push(col.trim()); col = ''; continue; }
+                if (cc === '\n' && !quote) {
+                    if (col.trim() || row.length) { row.push(col.trim()); arr.push(row); }
+                    row = []; col = ''; continue;
+                }
+                col += cc;
+            }
+            if (col || row.length) { row.push(col.trim()); arr.push(row); }
+            return arr;
+        }
+
+        function safeParseFloat(val) {
+            if (!val) return 0;
+            if (typeof val === 'number') return val;
+            let str = val.toString().replace(/[R$\s]/g, '');
+            if (str.includes(',') && str.includes('.')) { str = str.replace(/\./g, '').replace(',', '.'); } 
+            else if (str.includes(',')) { str = str.replace(',', '.'); }
+            let num = parseFloat(str); return isNaN(num) ? 0 : num;
+        }
+
+        async function fetchGoogleSheet(sheetName) {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Falha na conexão com servidor');
+            return parseCSV(await response.text());
+        }
+
+        async function loadAdminData() {
+            try {
+                // 1. Lê a aba LOGIN para pegar o mapa de CIP de cada cliente
+                const loginData = await fetchGoogleSheet('login');
+                const cipMap = {};
+                loginData.forEach(r => {
+                    if(r[0]) cipMap[r[0].trim().toLowerCase()] = safeParseFloat(r[1]);
+                });
+
+                // 2. Lê a aba Form_Responses para pegar todas as contas enviadas
+                const invoicesData = await fetchGoogleSheet('Form_Responses');
+                invoicesData.shift(); // Remove o cabeçalho
+
+                globalAllInvoices = [];
+                const monthsSet = new Set();
+
+                for(let row of invoicesData) {
+                    while(row.length < 7) row.push(""); 
+                    const clienteNome = (row[2] ? row[2].trim() : "");
+                    if(!clienteNome) continue;
+
+                    const clienteKey = clienteNome.toLowerCase();
+                    const consumoNum = safeParseFloat(row[1]);
+                    const clientCip = cipMap[clienteKey] !== undefined ? cipMap[clienteKey] : 0;
+                    
+                    const custoKwhNum = consumoNum * TARIFA_KWH;
+                    const valorBruto = custoKwhNum + clientCip;
+                    const valorCalculado = valorBruto * 0.80; // 20% OFF
+                    const descontoReais = valorBruto - valorCalculado;
+                    const mes = row[4] ? row[4].trim() : "Outro";
+                    const statusStr = (row[6] ? row[6].toLowerCase() : "");
+                    const isPaid = statusStr.includes('pago');
+
+                    if(mes) monthsSet.add(mes);
+
+                    globalAllInvoices.push({
+                        cliente: clienteNome,
+                        consumo: consumoNum.toString(),
+                        custoKwhStr: custoKwhNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        valorBrutoNum: valorBruto,
+                        valorCalculadoNum: valorCalculado,
+                        valor: valorCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        valorBruto: valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        desconto: descontoReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        cipStr: clientCip.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        mes: mes,
+                        status: isPaid ? 'pago' : 'pendente'
                     });
                 }
 
-                // Função para extrair dados limpos (Ignora o formato DATE() feio do Google Sheets)
-                const getVal = (colData) => {
-                    if (!colData) return "Não Informado";
-                    // Se o Google Sheets mandou a formatação humana '.f', usa ela. Senão usa '.v'.
-                    return colData.f ? String(colData.f) : String(colData.v);
-                };
+                globalAllInvoices.reverse(); // Mais recentes primeiro
 
-                const rows = json.table.rows;
-                cachePedidos = [];
-                
-                rows.forEach((row, index) => {
-                    // Evita processar a linha do cabeçalho se ela for lida como dado
-                    if(row.c && row.c[map.pedido] && !String(row.c[map.pedido].v).toUpperCase().includes("PEDIDO")) {
-                        
-                        const nome = getVal(row.c[map.nome]);
-                        const whats = getVal(row.c[map.whats]);
-                        const pedido = getVal(row.c[map.pedido]);
-                        const cartao = getVal(row.c[map.cartao]);
-                        const endereco = getVal(row.c[map.endereco]);
-                        
-                        const uniqueHash = btoa(encodeURIComponent(nome + endereco + index)).substring(0, 16);
-                        const jaImpresso = localStorage.getItem(uniqueHash) === "true";
-
-                        // Ignora linhas totalmente vazias
-                        if(pedido !== "Não Informado") {
-                            cachePedidos.push({ nome, whats, pedido, cartao, endereco, hash: uniqueHash, impresso: jaImpresso });
-                        }
-                    }
+                // Preenche o filtro de meses
+                const monthSelect = document.getElementById('month-filter');
+                monthSelect.innerHTML = `<option value="TODOS" class="bg-[#191266] text-white">TODOS OS MESES</option>`;
+                monthsSet.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#191266] text-white">${m.toUpperCase()}</option>`;
                 });
 
-                cachePedidos.reverse();
-                renderizarListaPedidos();
-            })
-            .catch(err => {
-                listContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 40px 0;"><i class="fas fa-exclamation-triangle"></i> Erro na requisição. A planilha está pública?</p>';
-            });
-    }
+                filterDataByMonth();
 
-    function renderizarListaPedidos() {
-        const listContainer = document.getElementById('domOrdersList');
-        listContainer.innerHTML = "";
-        
-        if(cachePedidos.length === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Nenhum registro encontrado na planilha.</p>';
-            return;
+                // Esconde tela de loading
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    init3DHouse();
+                }, 500);
+
+            } catch (error) {
+                console.error("Erro ao carregar dados ADM:", error);
+                alert("Ocorreu um erro ao buscar os dados da planilha.");
+            }
         }
-        
-        cachePedidos.forEach((item, index) => {
-            const badgeText = item.impresso ? '✓ ENVIADO' : '🟢 NOVO';
-            const badgeStyle = item.impresso ? 'background: rgba(255,255,255,0.05); color: var(--text-muted); border-color: var(--border-subtle);' : '';
+
+        function filterDataByMonth() {
+            const selectedMonth = document.getElementById('month-filter').value;
             
-            const html = `
-                <div class="order-card" id="card-item-${index}" onclick="selecionarPedido(${index})">
-                    <div class="card-top">
-                        <span class="client-name">${item.nome}</span>
-                        <span class="order-status-badge" style="${badgeStyle}">${badgeText}</span>
-                    </div>
-                    <div class="card-details">
-                        <div><strong>Endereço:</strong> ${item.endereco}</div>
-                        <div><strong>Itens:</strong> ${item.pedido.split('\\n')[0].substring(0, 30)}...</div>
-                    </div>
-                </div>
-            `;
-            listContainer.insertAdjacentHTML('beforeend', html);
-        });
+            if (selectedMonth === 'TODOS') {
+                currentFilteredInvoices = globalAllInvoices;
+            } else {
+                currentFilteredInvoices = globalAllInvoices.filter(i => i.mes === selectedMonth);
+            }
 
-        if(pedidoSelecionadoIdx !== null && pedidoSelecionadoIdx < cachePedidos.length) {
-            selecionarPedido(pedidoSelecionadoIdx);
+            renderDashboard();
         }
-    }
 
-    function selecionarPedido(index) {
-        pedidoSelecionadoIdx = index;
-        const item = cachePedidos[index];
+        function renderDashboard() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
 
-        document.querySelectorAll('.order-card').forEach(c => c.classList.remove('selected'));
-        const selectedCard = document.getElementById(`card-item-${index}`);
-        if(selectedCard) selectedCard.classList.add('selected');
+            let totalLucro = 0;
+            currentFilteredInvoices.forEach(i => totalLucro += i.valorCalculadoNum);
 
-        // Formatação de data padronizada (Sem segundos e com "às" para ficar com jeito brasileiro)
-        const agora = new Date();
-        const dataFmt = agora.toLocaleDateString('pt-BR');
-        const horaFmt = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        document.getElementById('tkData').innerText = `${dataFmt} as ${horaFmt}`;
+            // Atualiza valor gigante do topo
+            document.getElementById('total-revenue-display').innerText = totalLucro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-        document.getElementById('tkNome').innerText = item.nome;
-        document.getElementById('tkWhats').innerText = item.whats;
-        document.getElementById('tkCartao').innerText = item.cartao;
-        document.getElementById('tkEnd').innerText = item.endereco;
-        document.getElementById('tkItens').innerText = item.pedido;
+            if(currentFilteredInvoices.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-sm text-gray-300 font-medium">Nenhuma fatura encontrada para este período.</div>`;
+                return;
+            }
 
-        const btn = document.getElementById('domPrintBtn');
-        btn.className = "action-btn btn-active";
-        btn.disabled = false;
-    }
+            currentFilteredInvoices.forEach((item, index) => {
+                const isPaid = item.status === 'pago';
+                const statusBadge = isPaid 
+                    ? `<span class="bg-[#00c853] text-white text-[10px] font-black px-2.5 py-1 rounded uppercase tracking-wider">RECEBIDO</span>` 
+                    : `<span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2.5 py-1 rounded border border-gray-300 uppercase tracking-wider">PENDENTE</span>`;
 
-    // =================================================================================
-    // 🖨️ MOTOR RAWBT CALIBRADO (MÁXIMO DE 32 CARACTERES POR LINHA PARA 58MM)
-    // =================================================================================
-    function dispararIntentRawBT() {
-        if(pedidoSelecionadoIdx === null) return;
-        
-        const item = cachePedidos[pedidoSelecionadoIdx];
-        const dataHoraCupom = document.getElementById('tkData').innerText;
+                const valorDisplay = isPaid
+                    ? `<span class="text-[#00c853] font-black text-lg">${item.valor}</span>`
+                    : `<span class="text-gray-400 font-bold text-lg">--</span>`;
 
-        // Construção cirúrgica com larguras exatas para a impressora não quebrar palavras
-        let txt = "";
-        txt += "[C]======= BARBEARIA JUNIM =======\n"; // Exatos 32 caracteres (com comando)
-        txt += `DATA: ${dataHoraCupom}\n`;
-        txt += `CLIENTE: ${item.nome.toUpperCase()}\n`;
-        txt += `WHATSAPP: ${item.whats}\n`;
-        txt += `ID CARTAO: ${item.cartao.toUpperCase()}\n`;
-        txt += `ENDERECO: ${item.endereco.toUpperCase()}\n`;
-        txt += "--------------------------------\n"; // Exatos 32 caracteres
-        txt += "[C]PRODUTOS SOLICITADOS\n"; // Removido emojis para evitar bug na impressora
-        txt += `${item.pedido}\n`;
-        txt += "--------------------------------\n\n"; // Exatos 32 caracteres
-        txt += "[C]Obrigado pela preferencia!\n";
-        txt += "[C]================================\n"; // Exatos 32 caracteres
+                container.innerHTML += `
+                    <div class="admin-card fade-in">
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-1">
+                                <div class="pr-2">
+                                    <h2 class="font-black text-gray-900 text-base leading-tight capitalize">${item.cliente}</h2>
+                                    <p class="text-[11px] text-gray-400 font-semibold mt-0.5">Mês: ${item.mes} • Consumo: ${item.consumo} kWh</p>
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    ${valorDisplay}
+                                    <div class="mt-1">${statusBadge}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="openModal(${index})" class="card-details-btn w-full">
+                            Mais detalhes
+                        </button>
+                    </div>
+                `;
+            });
+        }
 
-        // Disparo do Intent
-        const rawbtIntentUrl = "intent:" + encodeURIComponent(txt) + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
-        window.location.href = rawbtIntentUrl;
+        function openModal(index) {
+            const invoice = currentFilteredInvoices[index];
+            const isPaid = invoice.status === 'pago';
 
-        // Marca como impresso localmente
-        localStorage.setItem(item.hash, "true");
-        item.impresso = true;
-        
-        renderizarListaPedidos();
-    }
-</script>
+            document.getElementById('modal-cliente-nome').innerText = invoice.cliente;
+            document.getElementById('modal-mes-sub').innerText = `Fatura referente a ${invoice.mes}`;
 
+            const badge = document.getElementById('modal-status');
+            badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
+            badge.className = `text-[10px] font-bold px-3 py-1 rounded-full uppercase ${isPaid ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`;
+
+            document.getElementById('modal-kwh').innerText = `${invoice.consumo} kWh`;
+            document.getElementById('modal-custo-kwh').innerText = invoice.custoKwhStr;
+            document.getElementById('modal-cip').innerText = invoice.cipStr;
+            document.getElementById('modal-valor-bruto').innerText = invoice.valorBruto;
+            document.getElementById('modal-desconto').innerText = `- ${invoice.desconto}`;
+            document.getElementById('modal-valor-final').innerText = invoice.valor;
+
+            document.getElementById('modal-overlay').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('modal-overlay').style.opacity = '1';
+                document.getElementById('bottom-sheet').style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        function closeModal() {
+            document.getElementById('bottom-sheet').style.transform = 'translateY(100%)';
+            document.getElementById('modal-overlay').style.opacity = '0';
+            setTimeout(() => { document.getElementById('modal-overlay').style.display = 'none'; }, 300);
+        }
+
+        // ================= MOTOR 3D =================
+        let scene, camera, renderer, ambientLight, controls;
+        let energyPath, energyDot, energyGlow, tubeMaterial;
+
+        function buildUtilityPole() {
+            const poleGroup = new THREE.Group();
+            
+            const poleMat = new THREE.MeshStandardMaterial({ color: 0x4a3f35, roughness: 0.8 });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.7, roughness: 0.3 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.1 });
+
+            const poleGeo = new THREE.CylinderGeometry(0.14, 0.20, 7.5, 12);
+            const poleMesh = new THREE.Mesh(poleGeo, poleMat);
+            poleMesh.position.set(-6.5, 2.0, 1.5);
+            poleGroup.add(poleMesh);
+
+            const armGeo = new THREE.BoxGeometry(0.1, 0.1, 1.0);
+            const armMesh = new THREE.Mesh(armGeo, metalMat);
+            armMesh.position.set(-6.5, 5.4, 1.5);
+            poleGroup.add(armMesh);
+
+            const isoGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.15, 8);
+            const iso1 = new THREE.Mesh(isoGeo, glassMat);
+            iso1.position.set(-6.5, 5.52, 1.1);
+            const iso2 = new THREE.Mesh(isoGeo, glassMat);
+            iso2.position.set(-6.5, 5.52, 1.9);
+            poleGroup.add(iso1);
+            poleGroup.add(iso2);
+
+            scene.add(poleGroup);
+        }
+
+        function init3DHouse() {
+            const container = document.getElementById('canvas-container');
+            if(container.children.length > 0) return; 
+
+            scene = new THREE.Scene();
+            const aspect = container.clientWidth / container.clientHeight;
+            
+            camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+            camera.position.set(-1.0, 3.5, 16.0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2;
+            controls.minDistance = 8;
+            controls.maxDistance = 25;
+            controls.target.set(-0.5, 1.0, 0);
+
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.85); 
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); 
+            dirLight.position.set(2, 12, 10); 
+            scene.add(dirLight);
+
+            const loader = new THREE.GLTFLoader();
+            loader.load('./casa.glb', (gltf) => {
+                const houseModel = gltf.scene;
+                houseModel.position.set(0, -1.2, 0);
+                houseModel.scale.set(0.85, 0.85, 0.85);
+                scene.add(houseModel);
+            }, undefined, (error) => {
+                console.error('Erro ao carregar o modelo 3D:', error);
+            });
+
+            buildUtilityPole();
+
+            energyPath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-6.5, 5.5, 1.1),
+                new THREE.Vector3(-4.2, 3.3, 1.15),
+                new THREE.Vector3(-1.8, 2.5, 1.1)
+            ]);
+
+            const tubeGeo = new THREE.TubeGeometry(energyPath, 64, 0.035, 8, false);
+            tubeMaterial = new THREE.MeshBasicMaterial({ color: 0x30d158, transparent: true, opacity: 0.85 });
+            const wireMesh = new THREE.Mesh(tubeGeo, tubeMaterial);
+            scene.add(wireMesh);
+
+            energyDot = new THREE.Mesh(
+                new THREE.SphereGeometry(0.14, 16, 16),
+                new THREE.MeshBasicMaterial({ color: 0x30d158 })
+            );
+
+            energyGlow = new THREE.PointLight(0x30d158, 3.0, 4.0);
+            energyDot.add(energyGlow);
+            scene.add(energyDot);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                
+                const speed = 3000;
+                const t = (Date.now() % speed) / speed;
+                const pos = energyPath.getPointAt(t);
+                energyDot.position.copy(pos);
+                
+                const pulse = 1 + Math.sin(Date.now() * 0.008) * 0.2;
+                energyDot.scale.setScalar(pulse);
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+    </script>
 </body>
 </html>
+```
