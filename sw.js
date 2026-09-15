@@ -1,4 +1,4 @@
-const CACHE_NAME = 'solarinvest-v1';
+const CACHE_NAME = 'solarinvest-v2';
 
 // Instalação do Service Worker
 self.addEventListener('install', (e) => {
@@ -7,7 +7,17 @@ self.addEventListener('install', (e) => {
 
 // Ativação do Service Worker
 self.addEventListener('activate', (e) => {
-  return self.clients.claim();
+  e.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 // Interceptação de requisições
