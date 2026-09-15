@@ -1,10 +1,28 @@
-```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SolarInvest ADM - Painel de Faturamento e Lucro</title>
+
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0a081d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SolarInvest">
+    <link rel="apple-touch-icon" href="logo.jpg">
+
+    <!-- Script de Registro do Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('PWA ativo com sucesso!', reg))
+            .catch(err => console.error('Erro ao registrar PWA:', err));
+        });
+      }
+    </script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,7 +31,7 @@
     <!-- SF Pro / Inter Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Three.js, GLTFLoader and OrbitControls -->
+    <!-- Three.js, GLTFLoader e OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -63,7 +81,7 @@
             border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-        /* 3D Canvas Background Container (Hero area only, non-blocking) */
+        /* 3D Canvas Background Container (Hero area only) */
         #canvas-container { 
             position: absolute; 
             top: 0; 
@@ -80,7 +98,6 @@
             #canvas-container { height: 36vh; }
         }
 
-        /* Smooth iOS Micro-animations */
         .fade-in-up { 
             animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
             opacity: 0;
@@ -90,7 +107,6 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        /* Senior UI Refined Card - Zero Text Clipping, High Contrast */
         .admin-card { 
             background: #ffffff; 
             color: #0f172a; 
@@ -135,7 +151,6 @@
             color: #ffffff; 
         }
 
-        /* Apple Bottom Sheet Modal */
         .modal-overlay { 
             position: fixed; 
             inset: 0; 
@@ -174,7 +189,6 @@
             margin: 0 auto 20px; 
         }
 
-        /* Loading Spinner */
         .spinner { 
             border: 3px solid rgba(255,255,255,0.15); 
             width: 34px; 
@@ -197,27 +211,21 @@
         <div class="spinner"></div>
     </div>
 
-    <!-- 3D CLEAN HERO CANVAS (No Utility Pole) -->
     <div id="canvas-container"></div>
 
     <div id="admin-dashboard" class="relative z-10 w-full min-h-screen flex flex-col pb-16">
         
-        <!-- Spacer for the Clean 3D Hero -->
         <div class="h-[20vh] sm:h-[24vh] w-full pointer-events-none flex-shrink-0"></div>
 
-        <!-- CABEÇALHO DE FATURAMENTO / LUCRO DA USINA -->
         <header class="px-5 pt-2 pb-6 text-center z-20 max-w-4xl mx-auto w-full">
-            <!-- FILTRO DE MÊS DROPDOWN RIGOROSO -->
             <div class="inline-flex items-center gap-2 text-xs text-indigo-100 font-bold uppercase tracking-wider mb-3 glass-pill px-4 py-2 rounded-full shadow-lg transition-transform active:scale-95 cursor-pointer">
                 <i class="fa-solid fa-calendar-check text-app-green text-sm"></i>
                 <span>LUCRO TOTAL DE:</span>
                 <select id="month-filter" class="bg-transparent text-white font-extrabold cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
-                    <!-- Preenchido via JS -->
                 </select>
                 <i class="fa-solid fa-chevron-down text-indigo-200 text-[10px] ml-1"></i>
             </div>
 
-            <!-- VALOR GIGANTE DO LUCRO TOTAL DO MÊS SELECIONADO -->
             <div class="relative block my-1">
                 <h1 id="total-revenue-display" class="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-md bg-gradient-to-b from-white via-slate-100 to-slate-300 text-transparent bg-clip-text leading-tight">
                     R$ 0,00
@@ -238,9 +246,7 @@
                 <span id="cards-count-badge" class="text-[11px] font-bold bg-white/10 text-white px-3 py-0.5 rounded-full border border-white/10">0</span>
             </div>
 
-            <!-- GRID RESPONSIVA SEM CORTES DE TEXTO -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="cards-container">
-                <!-- Cards renderizados dinamicamente sem corte -->
             </div>
         </main>
     </div>
@@ -262,7 +268,6 @@
             </div>
         </div>
 
-        <!-- DEMONSTRATIVO MINUCIOSO DE CUSTOS E LUCRO -->
         <div id="modal-content-body" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-5 space-y-3.5 text-sm shadow-inner">
             <div class="flex justify-between items-center text-slate-300">
                 <span class="font-medium">Consumo Medido:</span>
@@ -287,7 +292,6 @@
             </div>
         </div>
 
-        <!-- DESTAQUE PARA O LUCRO DA USINA -->
         <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
             <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Lucro / Faturamento da Usina</h4>
             <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
@@ -342,7 +346,6 @@
 
         async function loadAdminData() {
             try {
-                // 1. Lê a aba LOGIN para pegar a lista completa de clientes e mapa de CIP
                 const loginData = await fetchGoogleSheet('login');
                 const cipMap = {};
                 globalAllClients = [];
@@ -358,9 +361,8 @@
                     }
                 });
 
-                // 2. Lê a aba Form_Responses com todas as contas dos clientes
                 const invoicesData = await fetchGoogleSheet('Form_Responses');
-                invoicesData.shift(); // Remove cabeçalho
+                invoicesData.shift();
 
                 globalAllInvoices = [];
                 const monthsArray = [];
@@ -371,7 +373,7 @@
                     if(!clienteNome) continue;
 
                     const clienteKey = clienteNome.toLowerCase();
-                    if(!globalAllClients.some(c => c.toLowerCase() === clienteKey)) {
+                    if(!globalAllClients.some(c => c.toLowerCase() === clientKey)) {
                         globalAllClients.push(clienteNome);
                     }
 
@@ -380,7 +382,7 @@
                     
                     const custoKwhNum = consumoNum * TARIFA_KWH;
                     const valorBruto = custoKwhNum + clientCip;
-                    const valorCalculado = valorBruto * 0.80; // 20% OFF
+                    const valorCalculado = valorBruto * 0.80;
                     const descontoReais = valorBruto - valorCalculado;
                     const mes = row[4] ? row[4].trim() : "Outro";
                     const statusStr = (row[6] ? row[6].toLowerCase() : "");
@@ -395,7 +397,7 @@
                         consumo: consumoNum.toString(),
                         custoKwhStr: custoKwhNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         valorBrutoNum: valorBruto,
-                        valorCalculadoNum: valorCalculado, // Lucro da usina
+                        valorCalculadoNum: valorCalculado,
                         valor: valorCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         valorBruto: valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         desconto: descontoReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
@@ -407,7 +409,6 @@
 
                 globalAllInvoices.reverse();
 
-                // Preenche o filtro de mês
                 const monthSelect = document.getElementById('month-filter');
                 monthSelect.innerHTML = '';
                 
@@ -416,7 +417,6 @@
                 });
                 monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
 
-                // SELEÇÃO AUTOMÁTICA DO MÊS ATUAL
                 const now = new Date();
                 const currentMonthNamePt = now.toLocaleString('pt-BR', { month: 'long' }).toLowerCase();
                 
@@ -430,7 +430,6 @@
 
                 filterDataByMonth();
 
-                // Esconde splash screen
                 const loadingScreen = document.getElementById('loading-screen');
                 loadingScreen.style.opacity = '0';
                 setTimeout(() => {
@@ -458,14 +457,12 @@
 
             if (selectedMonth === 'TODOS') {
                 document.getElementById('month-subtitle-display').innerText = 'Lucro Total Acumulado (Todos os Meses)';
-                // Em todos, exibe todas as faturas que existem
                 globalAllInvoices.forEach(inv => {
                     currentFilteredCards.push({ hasData: true, ...inv });
                 });
             } else {
                 document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${selectedMonth}`;
                 
-                // Para cada cliente cadastrado, verifica se há fatura no mês selecionado
                 globalAllClients.forEach(clientName => {
                     const matchedInvoice = globalAllInvoices.find(
                         inv => inv.cliente.toLowerCase() === clientName.toLowerCase() && 
@@ -475,7 +472,6 @@
                     if (matchedInvoice) {
                         currentFilteredCards.push({ hasData: true, ...matchedInvoice });
                     } else {
-                        // Cliente sem dados de consumo para este mês
                         currentFilteredCards.push({
                             hasData: false,
                             cliente: clientName,
@@ -550,7 +546,6 @@
                 container.innerHTML += `
                     <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.03}s">
                         <div class="p-5 flex-1 flex flex-col justify-between gap-4">
-                            <!-- HEADER DO CARD COM BINDING LIMPO -->
                             <div>
                                 <div class="flex justify-between items-start gap-2 mb-2">
                                     <h2 class="font-extrabold text-slate-900 text-base leading-snug capitalize tracking-tight break-words pr-1">${item.cliente}</h2>
@@ -561,7 +556,6 @@
                                 </p>
                             </div>
 
-                            <!-- LUCRO EXIBIDO COM GRANDE CLAREZA NO CARD -->
                             <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline gap-2">
                                 <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">LUCRO USINA</span>
                                 ${profitHtml}
@@ -669,16 +663,13 @@
             dirLight.position.set(4, 12, 8); 
             scene.add(dirLight);
 
-            // Carrega modelo 3D limpo da casa (NO UTILITY POLE, NO DISTRACTING WIRES)
             const loader = new THREE.GLTFLoader();
             loader.load('./casa.glb', (gltf) => {
                 const houseModel = gltf.scene;
                 houseModel.position.set(0, -1.0, 0);
                 houseModel.scale.set(0.75, 0.75, 0.75);
                 scene.add(houseModel);
-            }, undefined, () => {
-                // Silently fallback if casa.glb is missing
-            });
+            }, undefined, () => {});
 
             function animate() {
                 requestAnimationFrame(animate);
