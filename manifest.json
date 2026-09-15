@@ -1,1 +1,21 @@
-
+{
+"short_name": "SolarInvest",
+"name": "SolarInvest Gestão e Faturas",
+"icons": [
+{
+"src": "logo.jpg",
+"type": "image/jpeg",
+"sizes": "192x192"
+},
+{
+"src": "logo.jpg",
+"type": "image/jpeg",
+"sizes": "512x512"
+}
+],
+"start_url": "./index.html",
+"background_color": "#0a081d",
+"theme_color": "#0a081d",
+"display": "standalone",
+"orientation": "portrait"
+}
