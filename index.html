@@ -208,7 +208,7 @@
         </div>
         <h1 class="text-2xl font-black text-white mb-2 tracking-tight">SolarInvest ADM</h1>
         <p class="text-xs text-indigo-200/70 mb-6 font-medium text-center">Sincronizando faturamento e relatório do banco de dados...</p>
-        <div class="spinner"></div>
+        <div class="spinner" id="main-spinner"></div>
     </div>
 
     <div id="canvas-container"></div>
@@ -338,15 +338,42 @@
         }
 
         async function fetchGoogleSheet(sheetName) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Falha na conexão com servidor');
-            return parseCSV(await response.text());
+            const urls = [
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`,
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`
+            ];
+
+            let lastError = null;
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                            throw new Error('PLANILHA_PRIVADA');
+                        }
+                        return parseCSV(text);
+                    }
+                } catch (e) {
+                    lastError = e;
+                }
+            }
+            throw lastError || new Error('Falha ao acessar planilha');
         }
 
         async function loadAdminData() {
             try {
-                const loginData = await fetchGoogleSheet('login');
+                // 1. Carrega dados de login / clientes e CIP
+                let loginData = [];
+                try {
+                    loginData = await fetchGoogleSheet('login');
+                } catch (e) {
+                    if (e.message === 'PLANILHA_PRIVADA') {
+                        throw new Error('A sua planilha no Google Sheets precisa estar configurada como "Qualquer pessoa com o link pode ver".');
+                    }
+                    throw e;
+                }
+
                 const cipMap = {};
                 globalAllClients = [];
 
@@ -361,8 +388,25 @@
                     }
                 });
 
-                const invoicesData = await fetchGoogleSheet('Form_Responses');
-                invoicesData.shift();
+                // 2. Tenta carregar faturas das abas mais comuns
+                let invoicesData = [];
+                const possibleSheetNames = ['Form_Responses', 'Respostas ao formulário 1', 'Respostas do formulário 1', 'Respostas'];
+                
+                for (const sheetName of possibleSheetNames) {
+                    try {
+                        const res = await fetchGoogleSheet(sheetName);
+                        if (res && res.length > 0) {
+                            invoicesData = res;
+                            break;
+                        }
+                    } catch (e) {
+                        // continua tentando as próximas opções de nome de aba
+                    }
+                }
+
+                if (invoicesData.length > 0) {
+                    invoicesData.shift(); // Remove o cabeçalho
+                }
 
                 globalAllInvoices = [];
                 const monthsArray = [];
@@ -441,11 +485,15 @@
                 console.error("Erro ao carregar dados ADM:", error);
                 const loadingScreen = document.getElementById('loading-screen');
                 loadingScreen.innerHTML = `
-                    <div class="text-center p-6 bg-red-500/10 border border-red-500/20 rounded-2xl max-w-xs">
-                        <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400 mb-2"></i>
-                        <h3 class="text-white font-bold text-base mb-1">Erro de Conexão</h3>
-                        <p class="text-xs text-slate-300 mb-4">Não foi possível carregar a planilha.</p>
-                        <button onclick="location.reload()" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold uppercase">Tentar Novamente</button>
+                    <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
+                        <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                        </div>
+                        <h3 class="text-white font-black text-lg mb-2">Erro de Carregamento</h3>
+                        <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${error.message || 'Não foi possível ler os dados da planilha. Verifique as permissões de compartilhamento no Google Sheets.'}</p>
+                        <div class="space-y-2">
+                            <button onclick="location.reload()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Tentar Novamente</button>
+                        </div>
                     </div>
                 `;
             }
@@ -688,4 +736,3 @@
     </script>
 </body>
 </html>
-```
