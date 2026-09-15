@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full">
 <head>
@@ -6,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SolarInvest ADM - Painel de Faturamento e Lucro</title>
 
-    <!-- Configurações PWA -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- Configurações PWA com Cache Busting -->
+    <link rel="manifest" href="./manifest.json?v=2">
     <meta name="theme-color" content="#0a081d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SolarInvest">
-    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="apple-touch-icon" href="logo.jpg?v=2">
 
     <!-- Script de Registro do Service Worker -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('PWA ativo com sucesso!', reg))
+          navigator.serviceWorker.register('./sw.js?v=2')
+            .then(reg => {
+              console.log('PWA ativo com sucesso!', reg);
+              reg.update(); // Força atualização do Service Worker
+            })
             .catch(err => console.error('Erro ao registrar PWA:', err));
         });
       }
@@ -747,4 +749,3 @@
     </script>
 </body>
 </html>
-```
