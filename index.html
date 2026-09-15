@@ -263,7 +263,7 @@
         </div>
 
         <!-- DEMONSTRATIVO MINUCIOSO DE CUSTOS E LUCRO -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-5 space-y-3.5 text-sm shadow-inner">
+        <div id="modal-content-body" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-5 space-y-3.5 text-sm shadow-inner">
             <div class="flex justify-between items-center text-slate-300">
                 <span class="font-medium">Consumo Medido:</span>
                 <span id="modal-kwh" class="font-bold text-white">0 kWh</span>
@@ -288,8 +288,8 @@
         </div>
 
         <!-- DESTAQUE PARA O LUCRO DA USINA -->
-        <div class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
-            <h4 class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Lucro / Faturamento da Usina</h4>
+        <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
+            <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Lucro / Faturamento da Usina</h4>
             <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
         </div>
     </div>
@@ -299,7 +299,8 @@
         const TARIFA_KWH = 0.81;
 
         let globalAllInvoices = [];
-        let currentFilteredInvoices = [];
+        let globalAllClients = [];
+        let currentFilteredCards = [];
 
         window.onload = () => {
             loadAdminData();
@@ -341,11 +342,20 @@
 
         async function loadAdminData() {
             try {
-                // 1. Lê a aba LOGIN para pegar o mapa de CIP de cada cliente
+                // 1. Lê a aba LOGIN para pegar a lista completa de clientes e mapa de CIP
                 const loginData = await fetchGoogleSheet('login');
                 const cipMap = {};
+                globalAllClients = [];
+
                 loginData.forEach(r => {
-                    if(r[0]) cipMap[r[0].trim().toLowerCase()] = safeParseFloat(r[1]);
+                    if(r[0] && r[0].trim()) {
+                        const clientName = r[0].trim();
+                        const clientKey = clientName.toLowerCase();
+                        cipMap[clientKey] = safeParseFloat(r[1]);
+                        if(!globalAllClients.some(c => c.toLowerCase() === clientKey)) {
+                            globalAllClients.push(clientName);
+                        }
+                    }
                 });
 
                 // 2. Lê a aba Form_Responses com todas as contas dos clientes
@@ -361,12 +371,16 @@
                     if(!clienteNome) continue;
 
                     const clienteKey = clienteNome.toLowerCase();
+                    if(!globalAllClients.some(c => c.toLowerCase() === clienteKey)) {
+                        globalAllClients.push(clienteNome);
+                    }
+
                     const consumoNum = safeParseFloat(row[1]);
                     const clientCip = cipMap[clienteKey] !== undefined ? cipMap[clienteKey] : 0;
                     
                     const custoKwhNum = consumoNum * TARIFA_KWH;
                     const valorBruto = custoKwhNum + clientCip;
-                    const valorCalculado = valorBruto * 0.80; // 20% OFF oferecido ao cliente
+                    const valorCalculado = valorBruto * 0.80; // 20% OFF
                     const descontoReais = valorBruto - valorCalculado;
                     const mes = row[4] ? row[4].trim() : "Outro";
                     const statusStr = (row[6] ? row[6].toLowerCase() : "");
@@ -391,7 +405,7 @@
                     });
                 }
 
-                globalAllInvoices.reverse(); // Faturas mais recentes primeiro
+                globalAllInvoices.reverse();
 
                 // Preenche o filtro de mês
                 const monthSelect = document.getElementById('month-filter');
@@ -402,7 +416,15 @@
                 });
                 monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
 
-                if(monthsArray.length > 0) {
+                // SELEÇÃO AUTOMÁTICA DO MÊS ATUAL
+                const now = new Date();
+                const currentMonthNamePt = now.toLocaleString('pt-BR', { month: 'long' }).toLowerCase();
+                
+                let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
+                
+                if (matchedCurrentMonth) {
+                    monthSelect.value = matchedCurrentMonth;
+                } else if (monthsArray.length > 0) {
                     monthSelect.value = monthsArray[0];
                 }
 
@@ -432,13 +454,44 @@
 
         function filterDataByMonth() {
             const selectedMonth = document.getElementById('month-filter').value;
-            
+            currentFilteredCards = [];
+
             if (selectedMonth === 'TODOS') {
-                currentFilteredInvoices = globalAllInvoices;
                 document.getElementById('month-subtitle-display').innerText = 'Lucro Total Acumulado (Todos os Meses)';
+                // Em todos, exibe todas as faturas que existem
+                globalAllInvoices.forEach(inv => {
+                    currentFilteredCards.push({ hasData: true, ...inv });
+                });
             } else {
-                currentFilteredInvoices = globalAllInvoices.filter(i => i.mes.toLowerCase() === selectedMonth.toLowerCase());
                 document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${selectedMonth}`;
+                
+                // Para cada cliente cadastrado, verifica se há fatura no mês selecionado
+                globalAllClients.forEach(clientName => {
+                    const matchedInvoice = globalAllInvoices.find(
+                        inv => inv.cliente.toLowerCase() === clientName.toLowerCase() && 
+                               inv.mes.toLowerCase() === selectedMonth.toLowerCase()
+                    );
+
+                    if (matchedInvoice) {
+                        currentFilteredCards.push({ hasData: true, ...matchedInvoice });
+                    } else {
+                        // Cliente sem dados de consumo para este mês
+                        currentFilteredCards.push({
+                            hasData: false,
+                            cliente: clientName,
+                            consumo: '--',
+                            custoKwhStr: 'R$ 0,00',
+                            valorBrutoNum: 0,
+                            valorCalculadoNum: 0,
+                            valor: '--',
+                            valorBruto: '--',
+                            desconto: '--',
+                            cipStr: 'R$ 0,00',
+                            mes: selectedMonth,
+                            status: 'sem_dados'
+                        });
+                    }
+                });
             }
 
             renderDashboard();
@@ -449,29 +502,53 @@
             container.innerHTML = '';
 
             let totalLucroMes = 0;
-            currentFilteredInvoices.forEach(i => totalLucroMes += i.valorCalculadoNum);
+            currentFilteredCards.forEach(c => {
+                if(c.hasData) totalLucroMes += c.valorCalculadoNum;
+            });
 
             document.getElementById('total-revenue-display').innerText = totalLucroMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('cards-count-badge').innerText = currentFilteredInvoices.length;
+            document.getElementById('cards-count-badge').innerText = currentFilteredCards.length;
 
-            if(currentFilteredInvoices.length === 0) {
+            if(currentFilteredCards.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full p-10 text-center glass-card rounded-2xl my-4">
                         <i class="fa-solid fa-folder-open text-3xl text-indigo-300/40 mb-3"></i>
-                        <p class="text-sm text-slate-300 font-medium">Nenhum registro encontrado para este mês.</p>
+                        <p class="text-sm text-slate-300 font-medium">Nenhum registro encontrado para este período.</p>
                     </div>
                 `;
                 return;
             }
 
-            currentFilteredInvoices.forEach((item, index) => {
-                const isPaid = item.status === 'pago';
-                const statusBadge = isPaid 
-                    ? `<span class="bg-[#30d158] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm flex-shrink-0">RECEBIDO</span>` 
-                    : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">PENDENTE</span>`;
+            currentFilteredCards.forEach((item, index) => {
+                let statusBadge = '';
+                let subtextHtml = '';
+                let profitHtml = '';
+
+                if (item.hasData) {
+                    const isPaid = item.status === 'pago';
+                    statusBadge = isPaid 
+                        ? `<span class="bg-[#30d158] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm flex-shrink-0">RECEBIDO</span>` 
+                        : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">PENDENTE</span>`;
+
+                    subtextHtml = `
+                        <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
+                        Mês: ${item.mes} • Consumo: ${item.consumo} kWh
+                    `;
+
+                    profitHtml = `<span class="text-2xl font-black text-[#00c853] tracking-tight leading-none">${item.valor}</span>`;
+                } else {
+                    statusBadge = `<span class="bg-slate-100 text-slate-400 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">SEM DADOS</span>`;
+
+                    subtextHtml = `
+                        <i class="fa-solid fa-circle-minus text-slate-300 text-[11px] mr-1"></i>
+                        Mês: ${item.mes} • Consumo: -- kWh
+                    `;
+
+                    profitHtml = `<span class="text-xl font-bold text-slate-300 tracking-tight leading-none">--</span>`;
+                }
 
                 container.innerHTML += `
-                    <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.04}s">
+                    <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.03}s">
                         <div class="p-5 flex-1 flex flex-col justify-between gap-4">
                             <!-- HEADER DO CARD COM BINDING LIMPO -->
                             <div>
@@ -480,15 +557,14 @@
                                     ${statusBadge}
                                 </div>
                                 <p class="text-xs text-slate-500 font-semibold">
-                                    <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
-                                    Mês: ${item.mes} • Consumo: ${item.consumo} kWh
+                                    ${subtextHtml}
                                 </p>
                             </div>
 
-                            <!-- LUCRO EXIBIDO COM GRANDE CLAREZA NO CARD DAS FRENTES -->
+                            <!-- LUCRO EXIBIDO COM GRANDE CLAREZA NO CARD -->
                             <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline gap-2">
                                 <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">LUCRO USINA</span>
-                                <span class="text-2xl font-black text-[#00c853] tracking-tight leading-none">${item.valor}</span>
+                                ${profitHtml}
                             </div>
                         </div>
 
@@ -502,22 +578,43 @@
         }
 
         function openModal(index) {
-            const invoice = currentFilteredInvoices[index];
-            const isPaid = invoice.status === 'pago';
+            const card = currentFilteredCards[index];
 
-            document.getElementById('modal-cliente-nome').innerText = invoice.cliente;
-            document.getElementById('modal-mes-sub').innerText = `Fatura referente a ${invoice.mes}`;
+            document.getElementById('modal-cliente-nome').innerText = card.cliente;
+            document.getElementById('modal-mes-sub').innerText = `Fatura referente a ${card.mes}`;
 
             const badge = document.getElementById('modal-status');
-            badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
-            badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
+            const contentBody = document.getElementById('modal-content-body');
+            const profitBox = document.getElementById('modal-profit-box');
+            const profitLabel = document.getElementById('modal-profit-label');
 
-            document.getElementById('modal-kwh').innerText = `${invoice.consumo} kWh`;
-            document.getElementById('modal-custo-kwh').innerText = invoice.custoKwhStr;
-            document.getElementById('modal-cip').innerText = invoice.cipStr;
-            document.getElementById('modal-valor-bruto').innerText = invoice.valorBruto;
-            document.getElementById('modal-desconto').innerText = `- ${invoice.desconto}`;
-            document.getElementById('modal-valor-final').innerText = invoice.valor;
+            if (card.hasData) {
+                const isPaid = card.status === 'pago';
+                badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
+                badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
+
+                contentBody.style.display = 'block';
+                document.getElementById('modal-kwh').innerText = `${card.consumo} kWh`;
+                document.getElementById('modal-custo-kwh').innerText = card.custoKwhStr;
+                document.getElementById('modal-cip').innerText = card.cipStr;
+                document.getElementById('modal-valor-bruto').innerText = card.valorBruto;
+                document.getElementById('modal-desconto').innerText = `- ${card.desconto}`;
+                
+                profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
+                profitLabel.innerText = "Lucro / Faturamento da Usina";
+                document.getElementById('modal-valor-final').className = "text-4xl font-black text-app-green tracking-tight";
+                document.getElementById('modal-valor-final').innerText = card.valor;
+            } else {
+                badge.innerText = 'SEM LANÇAMENTO';
+                badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700';
+
+                contentBody.style.display = 'none';
+
+                profitBox.className = "bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center";
+                profitLabel.innerText = `Nenhum consumo registrado em ${card.mes}`;
+                document.getElementById('modal-valor-final').className = "text-2xl font-bold text-slate-400 tracking-tight mt-1";
+                document.getElementById('modal-valor-final').innerText = "Sem Fatura";
+            }
 
             const overlay = document.getElementById('modal-overlay');
             const sheet = document.getElementById('bottom-sheet');
