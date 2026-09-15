@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full">
 <head>
@@ -302,6 +303,9 @@
         const SHEET_ID = '1IxzUCFbGIxOMrCGnjfHNlB16ll64TKh75SDOV1oOnWw';
         const TARIFA_KWH = 0.81;
 
+        // Palavras reservadas para ignorar cabeçalhos da planilha
+        const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status'];
+
         let globalAllInvoices = [];
         let globalAllClients = [];
         let currentFilteredCards = [];
@@ -381,6 +385,10 @@
                     if(r[0] && r[0].trim()) {
                         const clientName = r[0].trim();
                         const clientKey = clientName.toLowerCase();
+                        
+                        // Ignora se for o cabeçalho da tabela
+                        if (HEADER_WORDS.includes(clientKey)) return;
+
                         cipMap[clientKey] = safeParseFloat(r[1]);
                         if(!globalAllClients.some(c => c.toLowerCase() === clientKey)) {
                             globalAllClients.push(clientName);
@@ -405,7 +413,7 @@
                 }
 
                 if (invoicesData.length > 0) {
-                    invoicesData.shift(); // Remove o cabeçalho
+                    invoicesData.shift(); // Remove o cabeçalho principal
                 }
 
                 globalAllInvoices = [];
@@ -417,7 +425,10 @@
                     if(!clienteNome) continue;
 
                     const clienteKey = clienteNome.toLowerCase();
-                    if(!globalAllClients.some(c => c.toLowerCase() === clientKey)) {
+                    // Ignora linhas de cabeçalho duplicadas
+                    if (HEADER_WORDS.includes(clienteKey)) continue;
+
+                    if(!globalAllClients.some(c => c.toLowerCase() === clienteKey)) {
                         globalAllClients.push(clienteNome);
                     }
 
@@ -432,7 +443,7 @@
                     const statusStr = (row[6] ? row[6].toLowerCase() : "");
                     const isPaid = statusStr.includes('pago');
 
-                    if(mes && !monthsArray.includes(mes)) {
+                    if(mes && !HEADER_WORDS.includes(mes.toLowerCase()) && !monthsArray.includes(mes)) {
                         monthsArray.push(mes);
                     }
 
@@ -736,3 +747,4 @@
     </script>
 </body>
 </html>
+```
