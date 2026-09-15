@@ -3,12 +3,12 @@
 "name": "SolarInvest Gestão e Faturas",
 "icons": [
 {
-"src": "logo.jpg",
+"src": "logo.jpg?v=2",
 "type": "image/jpeg",
 "sizes": "192x192"
 },
 {
-"src": "logo.jpg",
+"src": "logo.jpg?v=2",
 "type": "image/jpeg",
 "sizes": "512x512"
 }
