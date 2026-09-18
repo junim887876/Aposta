@@ -230,7 +230,7 @@
             </div>
 
             <div class="relative block my-1">
-                <h1 id="total-revenue-display" class="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-md bg-gradient-to-b from-white via-slate-100 to-slate-300 text-transparent bg-clip-text leading-tight">
+                <h1 id="total-revenue-display" class="text-4xl sm:text-6xl md:text-7xl font-black text-[#30d158] tracking-tight drop-shadow-md leading-tight">
                     R$ 0,00
                 </h1>
             </div>
@@ -271,32 +271,62 @@
             </div>
         </div>
 
-        <div id="modal-content-body" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-5 space-y-3.5 text-sm shadow-inner">
-            <div class="flex justify-between items-center text-slate-300">
-                <span class="font-medium">Consumo Medido:</span>
-                <span id="modal-kwh" class="font-bold text-white">0 kWh</span>
+        <div id="modal-content-body" class="space-y-4 mb-5">
+            <!-- BLOCO 1: DETALHAMENTO DO CLIENTE -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs shadow-inner">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-file-invoice text-amber-400 mr-1"></i> Faturamento & Conta do Cliente
+                </span>
+                
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Consumo Medido:</span>
+                    <span id="modal-kwh" class="font-bold text-white text-sm">0 kWh</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Valor da Energia (R$ 0,81/kWh):</span>
+                    <span id="modal-custo-kwh" class="font-semibold text-white">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Iluminação Pública (CIP):</span>
+                    <span id="modal-cip" class="font-semibold text-white">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 border-t border-slate-800/80 pt-2">
+                    <span class="font-medium">Valor Concessionária Sem Desconto:</span>
+                    <span id="modal-valor-bruto" class="line-through text-red-400/90 font-medium">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-emerald-400 font-medium">
+                    <span>Desconto Aplicado (20% OFF):</span>
+                    <span id="modal-desconto" class="font-bold">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-white font-extrabold border-t border-slate-700 pt-2 text-sm">
+                    <span>Faturamento do Cliente (Valor a Pagar):</span>
+                    <span id="modal-faturamento" class="text-amber-300">R$ 0,00</span>
+                </div>
             </div>
-            <div class="flex justify-between items-center text-slate-300">
-                <span class="font-medium">Custo de Energia (<span id="modal-tarifa-kwh">R$ 0,81</span>/kWh):</span>
-                <span id="modal-custo-kwh" class="font-semibold text-white">R$ 0,00</span>
-            </div>
-            <div class="flex justify-between items-center text-slate-300">
-                <span class="font-medium">Taxa de Iluminação (CIP):</span>
-                <span id="modal-cip" class="font-semibold text-white">R$ 0,00</span>
-            </div>
-            
-            <div class="border-t border-slate-800 pt-3 flex justify-between items-center text-slate-400">
-                <span class="font-medium">Valor Concessionária Sem Desconto:</span>
-                <span id="modal-valor-bruto" class="line-through text-red-400/90 font-medium">R$ 0,00</span>
-            </div>
-            <div class="flex justify-between items-center text-emerald-400 font-medium">
-                <span>Desconto do Cliente (20% OFF):</span>
-                <span id="modal-desconto" class="font-bold">- R$ 0,00</span>
+
+            <!-- BLOCO 2: DETALHAMENTO DOS CUSTOS DA USINA -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-calculator text-red-400 mr-1"></i> Custos Operacionais da Usina
+                </span>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Custo de Geração (R$ 0,17/kWh):</span>
+                    <span id="modal-custo-kwh-usina" class="font-semibold text-red-400">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Iluminação Pública Paga por Você (CIP):</span>
+                    <span id="modal-cip-usina" class="font-semibold text-red-400">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-200 font-bold border-t border-slate-800 pt-2">
+                    <span>Custo Total da Usina:</span>
+                    <span id="modal-custo-total" class="text-red-400">- R$ 0,00</span>
+                </div>
             </div>
         </div>
 
+        <!-- BLOCO 3: LUCRO LÍQUIDO FINAL EM DESTAQUE -->
         <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
-            <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Lucro / Faturamento da Usina</h4>
+            <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
             <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
         </div>
     </div>
@@ -304,6 +334,12 @@
     <script>
         const SHEET_ID = '1IxzUCFbGIxOMrCGnjfHNlB16ll64TKh75SDOV1oOnWw';
         const TARIFA_KWH = 0.81;
+        const CUSTO_KWH_USINA = 0.17; // Custo de geração fixo de R$ 0,17/kWh
+
+        const NATIVE_MONTHS = [
+            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+        ];
 
         // Palavras reservadas para ignorar cabeçalhos da planilha
         const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status'];
@@ -410,7 +446,7 @@
                             break;
                         }
                     } catch (e) {
-                        // continua tentando as próximas opções de nome de aba
+                        // continua tentando as próximas opções
                     }
                 }
 
@@ -427,7 +463,6 @@
                     if(!clienteNome) continue;
 
                     const clienteKey = clienteNome.toLowerCase();
-                    // Ignora linhas de cabeçalho duplicadas
                     if (HEADER_WORDS.includes(clienteKey)) continue;
 
                     if(!globalAllClients.some(c => c.toLowerCase() === clienteKey)) {
@@ -439,8 +474,18 @@
                     
                     const custoKwhNum = consumoNum * TARIFA_KWH;
                     const valorBruto = custoKwhNum + clientCip;
-                    const valorCalculado = valorBruto * 0.80;
-                    const descontoReais = valorBruto - valorCalculado;
+                    
+                    // Faturamento obtido cobrando 80% do cliente (20% desconto)
+                    const faturamentoCalculado = valorBruto * 0.80; 
+                    const descontoReais = valorBruto - faturamentoCalculado;
+                    
+                    // CUSTO TOTAL DA USINA: (kWh * 0.17) + CIP que você paga
+                    const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
+                    const custoTotalUsina = custoProducaoKwh + clientCip;
+                    
+                    // SEU LUCRO LÍQUIDO FINAL
+                    const lucroLiquido = faturamentoCalculado - custoTotalUsina;
+
                     const mes = row[4] ? row[4].trim() : "Outro";
                     const statusStr = (row[6] ? row[6].toLowerCase() : "");
                     const isPaid = statusStr.includes('pago');
@@ -451,11 +496,18 @@
 
                     globalAllInvoices.push({
                         cliente: clienteNome,
+                        consumoNum: consumoNum,
                         consumo: consumoNum.toString(),
                         custoKwhStr: custoKwhNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         valorBrutoNum: valorBruto,
-                        valorCalculadoNum: valorCalculado,
-                        valor: valorCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        faturamentoNum: faturamentoCalculado,
+                        lucroLiquidoNum: lucroLiquido,
+                        custoProducaoKwhNum: custoProducaoKwh,
+                        custoTotalUsinaNum: custoTotalUsina,
+                        faturamentoStr: faturamentoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        custoProducaoKwhStr: custoProducaoKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        custoTotalUsinaStr: custoTotalUsina.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         valorBruto: valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         desconto: descontoReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         cipStr: clientCip.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
@@ -466,6 +518,14 @@
 
                 globalAllInvoices.reverse();
 
+                // Ordena os meses logicamente
+                monthsArray.sort((a, b) => {
+                    let idxA = NATIVE_MONTHS.findIndex(m => a.toLowerCase().includes(m));
+                    let idxB = NATIVE_MONTHS.findIndex(m => b.toLowerCase().includes(m));
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    return 0;
+                });
+
                 const monthSelect = document.getElementById('month-filter');
                 monthSelect.innerHTML = '';
                 
@@ -474,15 +534,16 @@
                 });
                 monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
 
+                // Identifica e seleciona o mês atual do sistema
                 const now = new Date();
-                const currentMonthNamePt = now.toLocaleString('pt-BR', { month: 'long' }).toLowerCase();
+                const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
                 
                 let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
                 
                 if (matchedCurrentMonth) {
                     monthSelect.value = matchedCurrentMonth;
                 } else if (monthsArray.length > 0) {
-                    monthSelect.value = monthsArray[0];
+                    monthSelect.value = monthsArray[monthsArray.length - 1]; // Seleciona o mês mais recente disponível
                 }
 
                 filterDataByMonth();
@@ -517,7 +578,7 @@
             currentFilteredCards = [];
 
             if (selectedMonth === 'TODOS') {
-                document.getElementById('month-subtitle-display').innerText = 'Lucro Total Acumulado (Todos os Meses)';
+                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Total Acumulado (Todos os Meses)';
                 globalAllInvoices.forEach(inv => {
                     currentFilteredCards.push({ hasData: true, ...inv });
                 });
@@ -539,8 +600,14 @@
                             consumo: '--',
                             custoKwhStr: 'R$ 0,00',
                             valorBrutoNum: 0,
-                            valorCalculadoNum: 0,
-                            valor: '--',
+                            faturamentoNum: 0,
+                            lucroLiquidoNum: 0,
+                            custoProducaoKwhNum: 0,
+                            custoTotalUsinaNum: 0,
+                            faturamentoStr: '--',
+                            lucroStr: '--',
+                            custoProducaoKwhStr: 'R$ 0,00',
+                            custoTotalUsinaStr: 'R$ 0,00',
                             valorBruto: '--',
                             desconto: '--',
                             cipStr: 'R$ 0,00',
@@ -560,7 +627,7 @@
 
             let totalLucroMes = 0;
             currentFilteredCards.forEach(c => {
-                if(c.hasData) totalLucroMes += c.valorCalculadoNum;
+                if(c.hasData) totalLucroMes += c.lucroLiquidoNum;
             });
 
             document.getElementById('total-revenue-display').innerText = totalLucroMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -589,10 +656,10 @@
 
                     subtextHtml = `
                         <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
-                        Mês: ${item.mes} • Consumo: ${item.consumo} kWh
+                        Mês: ${item.mes} • Faturamento: ${item.faturamentoStr}
                     `;
 
-                    profitHtml = `<span class="text-2xl font-black text-[#00c853] tracking-tight leading-none">${item.valor}</span>`;
+                    profitHtml = `<span class="text-2xl font-black text-[#30d158] tracking-tight leading-none">${item.lucroStr}</span>`;
                 } else {
                     statusBadge = `<span class="bg-slate-100 text-slate-400 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">SEM DADOS</span>`;
 
@@ -649,16 +716,25 @@
                 badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
 
                 contentBody.style.display = 'block';
+                
+                // Preenchimento dos dados do cliente
                 document.getElementById('modal-kwh').innerText = `${card.consumo} kWh`;
                 document.getElementById('modal-custo-kwh').innerText = card.custoKwhStr;
                 document.getElementById('modal-cip').innerText = card.cipStr;
                 document.getElementById('modal-valor-bruto').innerText = card.valorBruto;
                 document.getElementById('modal-desconto').innerText = `- ${card.desconto}`;
+                document.getElementById('modal-faturamento').innerText = card.faturamentoStr;
                 
+                // Preenchimento dos custos da usina
+                document.getElementById('modal-custo-kwh-usina').innerText = card.custoProducaoKwhStr;
+                document.getElementById('modal-cip-usina').innerText = card.cipStr;
+                document.getElementById('modal-custo-total').innerText = card.custoTotalUsinaStr;
+
+                // Preenchimento do lucro final
                 profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
-                profitLabel.innerText = "Lucro / Faturamento da Usina";
+                profitLabel.innerText = "Seu Lucro Líquido Final";
                 document.getElementById('modal-valor-final').className = "text-4xl font-black text-app-green tracking-tight";
-                document.getElementById('modal-valor-final').innerText = card.valor;
+                document.getElementById('modal-valor-final').innerText = card.lucroStr;
             } else {
                 badge.innerText = 'SEM LANÇAMENTO';
                 badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700';
