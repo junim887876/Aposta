@@ -20,7 +20,7 @@
           navigator.serviceWorker.register('./sw.js?v=2')
             .then(reg => {
               console.log('PWA ativo com sucesso!', reg);
-              reg.update(); // Força atualização do Service Worker
+              reg.update();
             })
             .catch(err => console.error('Erro ao registrar PWA:', err));
         });
@@ -69,7 +69,6 @@
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
 
-        /* Apple Glassmorphism Utilities */
         .glass-pill {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
@@ -84,7 +83,6 @@
             border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-        /* 3D Canvas Background Container (Hero area only) */
         #canvas-container { 
             position: absolute; 
             top: 0; 
@@ -221,12 +219,19 @@
         <div class="h-[20vh] sm:h-[24vh] w-full pointer-events-none flex-shrink-0"></div>
 
         <header class="px-5 pt-2 pb-6 text-center z-20 max-w-4xl mx-auto w-full">
-            <div class="inline-flex items-center gap-2 text-xs text-indigo-100 font-bold uppercase tracking-wider mb-3 glass-pill px-4 py-2 rounded-full shadow-lg transition-transform active:scale-95 cursor-pointer">
-                <i class="fa-solid fa-calendar-check text-app-green text-sm"></i>
-                <span>LUCRO TOTAL DE:</span>
-                <select id="month-filter" class="bg-transparent text-white font-extrabold cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
-                </select>
-                <i class="fa-solid fa-chevron-down text-indigo-200 text-[10px] ml-1"></i>
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <div class="inline-flex items-center gap-2 text-xs text-indigo-100 font-bold uppercase tracking-wider glass-pill px-4 py-2 rounded-full shadow-lg transition-transform active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-calendar-check text-app-green text-sm"></i>
+                    <span>LUCRO TOTAL DE:</span>
+                    <select id="month-filter" class="bg-transparent text-white font-extrabold cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
+                    </select>
+                    <i class="fa-solid fa-chevron-down text-indigo-200 text-[10px] ml-1"></i>
+                </div>
+                
+                <!-- Botão de Configuração da Planilha -->
+                <button onclick="openConfigModal()" title="Configurar Planilha" class="glass-pill p-2 rounded-full text-indigo-200 hover:text-white transition-all active:scale-90">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
             </div>
 
             <div class="relative block my-1">
@@ -254,6 +259,7 @@
         </main>
     </div>
 
+    <!-- MODAL DE DETALHES -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
     <div class="bottom-sheet" id="bottom-sheet">
         <div class="modal-pill"></div>
@@ -272,7 +278,6 @@
         </div>
 
         <div id="modal-content-body" class="space-y-4 mb-5">
-            <!-- BLOCO 1: DETALHAMENTO DO CLIENTE -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs shadow-inner">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
                     <i class="fa-solid fa-file-invoice text-amber-400 mr-1"></i> Faturamento & Conta do Cliente
@@ -304,7 +309,6 @@
                 </div>
             </div>
 
-            <!-- BLOCO 2: DETALHAMENTO DOS CUSTOS DA USINA -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
                     <i class="fa-solid fa-calculator text-red-400 mr-1"></i> Custos Operacionais da Usina
@@ -324,24 +328,51 @@
             </div>
         </div>
 
-        <!-- BLOCO 3: LUCRO LÍQUIDO FINAL EM DESTAQUE -->
         <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
             <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
             <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
         </div>
     </div>
 
+    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA LOCAL -->
+    <div class="modal-overlay" id="config-overlay" onclick="closeConfigModal()"></div>
+    <div class="bottom-sheet" id="config-sheet">
+        <div class="modal-pill"></div>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-black text-white">Configurar Planilha</h3>
+            <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">Insira o Link ou ID da sua planilha do Google Sheets. Ela ficará salva **apenas neste navegador**.</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-indigo-300 uppercase mb-1">Link ou ID da Planilha</label>
+                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-app-green">
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="saveSheetConfig()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-colors">
+                    Salvar e Carregar
+                </button>
+                <button onclick="clearSheetConfig()" class="py-3 px-4 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 font-bold rounded-xl text-xs uppercase transition-colors">
+                    Limpar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const SHEET_ID = '1IxzUCFbGIxOMrCGnjfHNlB16ll64TKh75SDOV1oOnWw';
+        const STORAGE_KEY = 'solarinvest_sheet_id';
         const TARIFA_KWH = 0.81;
-        const CUSTO_KWH_USINA = 0.175126; // Custo de geração fixo de R$ 0,17/kWh
+        const CUSTO_KWH_USINA = 0.175126;
 
         const NATIVE_MONTHS = [
             'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
             'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
         ];
 
-        // Palavras reservadas para ignorar cabeçalhos da planilha
         const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status'];
 
         let globalAllInvoices = [];
@@ -349,8 +380,61 @@
         let currentFilteredCards = [];
 
         window.onload = () => {
-            loadAdminData();
+            const savedId = getStoredSheetId();
+            if (!savedId) {
+                showConfigScreen('Por favor, adicione o ID ou Link da sua planilha para carregar os dados.');
+            } else {
+                loadAdminData();
+            }
         };
+
+        function getStoredSheetId() {
+            return localStorage.getItem(STORAGE_KEY) || '';
+        }
+
+        function extractSheetId(input) {
+            if (!input) return '';
+            const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : input.trim();
+        }
+
+        function saveSheetConfig() {
+            const rawVal = document.getElementById('input-sheet-id').value;
+            const extracted = extractSheetId(rawVal);
+            if (!extracted) {
+                alert('Por favor, insira um ID ou Link válido.');
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY, extracted);
+            closeConfigModal();
+            location.reload();
+        }
+
+        function clearSheetConfig() {
+            if (confirm('Deseja remover a planilha salva deste navegador?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        function openConfigModal() {
+            document.getElementById('input-sheet-id').value = getStoredSheetId();
+            const overlay = document.getElementById('config-overlay');
+            const sheet = document.getElementById('config-sheet');
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            }, 10);
+        }
+
+        function closeConfigModal() {
+            const overlay = document.getElementById('config-overlay');
+            const sheet = document.getElementById('config-sheet');
+            sheet.style.transform = 'translate(-50%, 100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 350);
+        }
 
         function parseCSV(str) {
             const arr = []; let quote = false; let row = [], col = '';
@@ -380,6 +464,9 @@
         }
 
         async function fetchGoogleSheet(sheetName) {
+            const SHEET_ID = getStoredSheetId();
+            if(!SHEET_ID) throw new Error('NO_SHEET_ID');
+
             const urls = [
                 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`,
                 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`
@@ -403,15 +490,30 @@
             throw lastError || new Error('Falha ao acessar planilha');
         }
 
+        function showConfigScreen(msg) {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.innerHTML = `
+                <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-table text-xl"></i>
+                    </div>
+                    <h3 class="text-white font-black text-lg mb-2">Configuração Inicial</h3>
+                    <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${msg}</p>
+                    <div class="space-y-2">
+                        <button onclick="openConfigModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Adicionar Planilha</button>
+                    </div>
+                </div>
+            `;
+        }
+
         async function loadAdminData() {
             try {
-                // 1. Carrega dados de login / clientes e CIP
                 let loginData = [];
                 try {
                     loginData = await fetchGoogleSheet('login');
                 } catch (e) {
                     if (e.message === 'PLANILHA_PRIVADA') {
-                        throw new Error('A sua planilha no Google Sheets precisa estar configurada como "Qualquer pessoa com o link pode ver".');
+                        throw new Error('A sua planilha precisa estar pública ("Qualquer pessoa com o link").');
                     }
                     throw e;
                 }
@@ -423,8 +525,6 @@
                     if(r[0] && r[0].trim()) {
                         const clientName = r[0].trim();
                         const clientKey = clientName.toLowerCase();
-                        
-                        // Ignora se for o cabeçalho da tabela
                         if (HEADER_WORDS.includes(clientKey)) return;
 
                         cipMap[clientKey] = safeParseFloat(r[1]);
@@ -434,7 +534,6 @@
                     }
                 });
 
-                // 2. Tenta carregar faturas das abas mais comuns
                 let invoicesData = [];
                 const possibleSheetNames = ['Form_Responses', 'Respostas ao formulário 1', 'Respostas do formulário 1', 'Respostas'];
                 
@@ -445,13 +544,11 @@
                             invoicesData = res;
                             break;
                         }
-                    } catch (e) {
-                        // continua tentando as próximas opções
-                    }
+                    } catch (e) {}
                 }
 
                 if (invoicesData.length > 0) {
-                    invoicesData.shift(); // Remove o cabeçalho principal
+                    invoicesData.shift();
                 }
 
                 globalAllInvoices = [];
@@ -475,15 +572,12 @@
                     const custoKwhNum = consumoNum * TARIFA_KWH;
                     const valorBruto = custoKwhNum + clientCip;
                     
-                    // Faturamento obtido cobrando 80% do cliente (20% desconto)
                     const faturamentoCalculado = valorBruto * 0.80; 
                     const descontoReais = valorBruto - faturamentoCalculado;
                     
-                    // CUSTO TOTAL DA USINA: (kWh * 0.17) + CIP que você paga
                     const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
                     const custoTotalUsina = custoProducaoKwh + clientCip;
                     
-                    // SEU LUCRO LÍQUIDO FINAL
                     const lucroLiquido = faturamentoCalculado - custoTotalUsina;
 
                     const mes = row[4] ? row[4].trim() : "Outro";
@@ -518,7 +612,6 @@
 
                 globalAllInvoices.reverse();
 
-                // Ordena os meses logicamente
                 monthsArray.sort((a, b) => {
                     let idxA = NATIVE_MONTHS.findIndex(m => a.toLowerCase().includes(m));
                     let idxB = NATIVE_MONTHS.findIndex(m => b.toLowerCase().includes(m));
@@ -534,7 +627,6 @@
                 });
                 monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
 
-                // Identifica e seleciona o mês atual do sistema
                 const now = new Date();
                 const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
                 
@@ -543,7 +635,7 @@
                 if (matchedCurrentMonth) {
                     monthSelect.value = matchedCurrentMonth;
                 } else if (monthsArray.length > 0) {
-                    monthSelect.value = monthsArray[monthsArray.length - 1]; // Seleciona o mês mais recente disponível
+                    monthSelect.value = monthsArray[monthsArray.length - 1];
                 }
 
                 filterDataByMonth();
@@ -557,19 +649,7 @@
 
             } catch (error) {
                 console.error("Erro ao carregar dados ADM:", error);
-                const loadingScreen = document.getElementById('loading-screen');
-                loadingScreen.innerHTML = `
-                    <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
-                        <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-4">
-                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                        </div>
-                        <h3 class="text-white font-black text-lg mb-2">Erro de Carregamento</h3>
-                        <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${error.message || 'Não foi possível ler os dados da planilha. Verifique as permissões de compartilhamento no Google Sheets.'}</p>
-                        <div class="space-y-2">
-                            <button onclick="location.reload()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Tentar Novamente</button>
-                        </div>
-                    </div>
-                `;
+                showConfigScreen(error.message || 'Erro ao ler dados da planilha.');
             }
         }
 
@@ -717,7 +797,6 @@
 
                 contentBody.style.display = 'block';
                 
-                // Preenchimento dos dados do cliente
                 document.getElementById('modal-kwh').innerText = `${card.consumo} kWh`;
                 document.getElementById('modal-custo-kwh').innerText = card.custoKwhStr;
                 document.getElementById('modal-cip').innerText = card.cipStr;
@@ -725,12 +804,10 @@
                 document.getElementById('modal-desconto').innerText = `- ${card.desconto}`;
                 document.getElementById('modal-faturamento').innerText = card.faturamentoStr;
                 
-                // Preenchimento dos custos da usina
                 document.getElementById('modal-custo-kwh-usina').innerText = card.custoProducaoKwhStr;
                 document.getElementById('modal-cip-usina').innerText = card.cipStr;
                 document.getElementById('modal-custo-total').innerText = card.custoTotalUsinaStr;
 
-                // Preenchimento do lucro final
                 profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
                 profitLabel.innerText = "Seu Lucro Líquido Final";
                 document.getElementById('modal-valor-final').className = "text-4xl font-black text-app-green tracking-tight";
