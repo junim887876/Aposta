@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SolarInvest ADM • NextGen Cyber</title>
+    <title>SolarInvest</title>
 
-    <!-- Configurações PWA -->
-    <link rel="manifest" href="./manifest.json?v=4">
-    <meta name="theme-color" content="#070514">
+    <!-- Configurações PWA com Cache Busting -->
+    <link rel="manifest" href="./manifest.json?v=2">
+    <meta name="theme-color" content="#0a081d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SolarInvest">
-    <link rel="apple-touch-icon" href="logo.jpg?v=4">
+    <link rel="apple-touch-icon" href="logo.jpg?v=2">
 
+    <!-- Script de Registro do Service Worker -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js?v=4').then(r => r.update()).catch(console.error);
+          navigator.serviceWorker.register('./sw.js?v=2')
+            .then(reg => {
+              console.log('PWA ativo com sucesso!', reg);
+              reg.update();
+            })
+            .catch(err => console.error('Erro ao registrar PWA:', err));
         });
       }
     </script>
     
-    <!-- Tailwind CSS, FontAwesome, Google Fonts, Chart.js -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Three.js & Loaders -->
+    <!-- SF Pro / Inter Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Three.js, GLTFLoader e OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -36,14 +43,19 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', '-apple-system', 'sans-serif'] },
+                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'] },
                     colors: {
-                        'app-bg': '#070514',
-                        'cyber-cyan': '#00f2fe',
-                        'cyber-purple': '#7928ca',
-                        'cyber-green': '#30d158',
-                        'cyber-neon': '#00ff87',
-                        'cyber-gold': '#ffb703'
+                        'app-bg': '#0a081d',
+                        'app-card-bg': '#ffffff',
+                        'app-green': '#30d158',
+                        'app-green-dark': '#00c853',
+                        'app-orange': '#ff9f0a',
+                        'app-red': '#ff453a'
+                    },
+                    boxShadow: {
+                        'apple-card': '0 10px 30px rgba(0, 0, 0, 0.25)',
+                        'apple-glow': '0 0 35px rgba(48, 209, 88, 0.3)',
+                        'glass-glow': '0 12px 40px rgba(0, 0, 0, 0.5)'
                     }
                 }
             }
@@ -52,292 +64,261 @@
     
     <style>
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
-        html, body { touch-action: manipulation; height: 100%; background-color: #070514; color: #ffffff; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(0,242,254,0.3); border-radius: 99px; }
+        html, body { touch-action: manipulation; height: 100%; background-color: #0a081d; color: #ffffff; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
 
-        .glass-hud {
-            background: rgba(13, 11, 33, 0.65);
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
         }
 
         #canvas-container { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 38vh; min-height: 260px;
-            z-index: 1; pointer-events: auto;
-            background: radial-gradient(circle at 50% 20%, #1a1040 0%, #070514 100%);
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 32vh; 
+            min-height: 220px;
+            z-index: 1; 
+            pointer-events: auto;
+            background: radial-gradient(circle at 50% 30%, #1a144e 0%, #0a081d 100%);
         }
 
-        @media (min-width: 768px) { #canvas-container { height: 44vh; } }
+        @media (min-width: 768px) {
+            #canvas-container { height: 36vh; }
+        }
 
-        .fade-in-up { animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(12px); }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        .fade-in-up { 
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        @keyframes fadeInUp { 
+            to { opacity: 1; transform: translateY(0); } 
+        }
 
         .admin-card { 
-            background: rgba(255, 255, 255, 0.96); color: #0f172a; border-radius: 24px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; 
+            background: #ffffff; 
+            color: #0f172a; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22); 
+            overflow: hidden; 
             transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
             border: 1px solid rgba(255, 255, 255, 0.9);
-            display: flex; flex-direction: column; justify-content: space-between; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
-        .admin-card:hover { transform: translateY(-4px) scale(1.015); box-shadow: 0 20px 40px rgba(0,242,254,0.3); }
+        .admin-card:hover { 
+            transform: translateY(-4px) scale(1.01); 
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.35); 
+        }
+        .admin-card:active { 
+            transform: scale(0.985); 
+        }
+
+        .card-details-btn { 
+            background: #f8fafc; 
+            color: #475569; 
+            font-size: 11px; 
+            font-weight: 800; 
+            text-align: center; 
+            padding: 14px 16px; 
+            border-top: 1px solid #f1f5f9; 
+            transition: all 0.2s ease; 
+            text-transform: uppercase; 
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .card-details-btn:hover { 
+            background: #0f172a; 
+            color: #ffffff; 
+        }
 
         .modal-overlay { 
-            position: fixed; inset: 0; background: rgba(3, 2, 10, 0.85); 
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); 
-            z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s ease; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.75); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            z-index: 1000; 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.35s ease; 
         }
         .bottom-sheet { 
-            position: fixed; bottom: 0; left: 50%; transform: translate(-50%, 100%);
-            width: 100%; max-width: 560px; background: #0d0b21; color: #ffffff; 
-            border-top-left-radius: 32px; border-top-right-radius: 32px; 
-            padding: 24px 24px 36px; z-index: 1001; 
-            border: 1px solid rgba(0,242,254,0.3); 
-            transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1); 
-            max-height: 90vh; overflow-y: auto; 
-            box-shadow: 0 -10px 60px rgba(0,242,254,0.2); 
+            position: fixed; 
+            bottom: 0; 
+            left: 50%;
+            transform: translate(-50%, 100%);
+            width: 100%; 
+            max-width: 540px;
+            background: #141a29; 
+            color: #ffffff; 
+            border-top-left-radius: 28px; 
+            border-top-right-radius: 28px; 
+            padding: 24px 24px 40px; 
+            z-index: 1001; 
+            border: 1px solid rgba(255,255,255,0.14); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            max-height: 88vh; 
+            overflow-y: auto; 
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8); 
+        }
+        .modal-pill { 
+            width: 44px; 
+            height: 5px; 
+            background: rgba(255,255,255,0.25); 
+            border-radius: 10px; 
+            margin: 0 auto 20px; 
         }
 
         .spinner { 
-            border: 3px solid rgba(255,255,255,0.1); width: 36px; height: 36px; 
-            border-radius: 50%; border-left-color: #00f2fe; border-top-color: #30d158; 
-            animation: spin 0.7s linear infinite; 
+            border: 3px solid rgba(255,255,255,0.15); 
+            width: 34px; 
+            height: 34px; 
+            border-radius: 50%; 
+            border-left-color: #30d158; 
+            animation: spin 0.75s linear infinite; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-app-bg min-h-screen font-sans selection:bg-cyber-cyan selection:text-black">
+<body class="bg-app-bg min-h-screen font-sans selection:bg-app-green selection:text-black">
 
-    <!-- TELA DE SECURITY PIN (1234) -->
-    <div id="pin-screen" class="fixed inset-0 z-[100] bg-[#070514] flex flex-col justify-center items-center p-6">
-        <div class="relative w-20 h-20 rounded-3xl bg-gradient-to-tr from-cyber-purple to-cyber-cyan p-0.5 mb-6 shadow-[0_0_50px_rgba(0,242,254,0.4)]">
-            <div class="w-full h-full bg-[#0d0b21] rounded-[22px] flex items-center justify-center">
-                <i class="fa-solid fa-solar-panel text-3xl text-cyber-gold animate-pulse"></i>
-            </div>
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0a081d] flex flex-col justify-center items-center p-8 transition-opacity duration-500">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-app-green-dark to-emerald-300 flex items-center justify-center mb-6 shadow-apple-glow animate-pulse">
+            <i class="fa-solid fa-chart-line text-2xl text-slate-950"></i>
         </div>
-        <h2 class="text-3xl font-black text-white tracking-tight mb-1">SolarInvest <span class="text-cyber-cyan">ADM</span></h2>
-        <p class="text-xs text-slate-400 mb-8 font-medium text-center">Acesso Seguro do Gestor da Usina</p>
-
-        <form onsubmit="handlePinSubmit(event)" class="w-full max-w-xs space-y-4">
-            <input type="password" id="pin-input" maxlength="8" placeholder="• • • •" autofocus class="w-full bg-slate-900/90 border border-slate-700/80 text-center text-2xl tracking-[0.5em] font-black rounded-2xl px-4 py-3.5 text-cyber-cyan focus:outline-none focus:border-cyber-cyan focus:ring-2 focus:ring-cyber-cyan/20">
-            <button type="submit" class="w-full py-4 bg-gradient-to-r from-cyber-cyan to-emerald-400 text-slate-950 font-black rounded-2xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-cyber-cyan/20">Entrar no Dashboard</button>
-        </form>
-        <p id="pin-error" class="text-xs text-red-400 font-bold mt-4 hidden"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Senha incorreta!</p>
+        <h1 class="text-2xl font-black text-white mb-2 tracking-tight">SolarInvest ADM</h1>
+        <p class="text-xs text-indigo-200/70 mb-6 font-medium text-center">Sincronizando faturamento e relatório do banco de dados...</p>
+        <div class="spinner" id="main-spinner"></div>
     </div>
 
-    <!-- TELA DE CARREGAMENTO -->
-    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#070514] flex flex-col justify-center items-center p-8 transition-opacity duration-500 hidden">
-        <div class="spinner mb-4" id="main-spinner"></div>
-        <h1 class="text-xl font-black text-white tracking-tight">SolarInvest ADM</h1>
-        <p class="text-xs text-slate-400 mt-1">Carregando usina e clima de Goianésia...</p>
-    </div>
-
-    <!-- CANVAS 3D DA USINA / CASA -->
     <div id="canvas-container"></div>
 
-    <div id="admin-dashboard" class="relative z-10 w-full min-h-screen flex flex-col pb-20">
+    <div id="admin-dashboard" class="relative z-10 w-full min-h-screen flex flex-col pb-16">
         
-        <div class="h-[22vh] sm:h-[26vh] w-full pointer-events-none flex-shrink-0"></div>
+        <div class="h-[20vh] sm:h-[24vh] w-full pointer-events-none flex-shrink-0"></div>
 
-        <header class="px-5 pt-2 pb-6 text-center z-20 max-w-5xl mx-auto w-full space-y-4">
-            
-            <!-- MONITOR DE CLIMA GOIANÉSIA + CONTROLES -->
-            <div class="flex items-center justify-between gap-2 max-w-md mx-auto">
-                <div id="weather-status-pill" class="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider glass-hud px-4 py-2 rounded-full shadow-2xl text-amber-300">
-                    <i id="weather-icon" class="fa-solid fa-sun text-cyber-gold text-sm animate-bounce"></i>
-                    <span id="weather-text">GOIANÉSIA • SOL 31°C</span>
+        <header class="px-5 pt-2 pb-6 text-center z-20 max-w-4xl mx-auto w-full">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <div class="inline-flex items-center gap-2 text-xs text-indigo-100 font-bold uppercase tracking-wider glass-pill px-4 py-2 rounded-full shadow-lg transition-transform active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-calendar-check text-app-green text-sm"></i>
+                    <span>LUCRO TOTAL DE:</span>
+                    <select id="month-filter" class="bg-transparent text-white font-extrabold cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
+                    </select>
+                    <i class="fa-solid fa-chevron-down text-indigo-200 text-[10px] ml-1"></i>
                 </div>
-
-                <div class="flex items-center gap-1.5">
-                    <button onclick="togglePrivacyMode()" id="btn-privacy" title="Modo Privacidade" class="glass-hud p-2.5 rounded-full text-slate-300 hover:text-white transition-all active:scale-90">
-                        <i class="fa-solid fa-eye text-sm"></i>
-                    </button>
-                    <button onclick="openConfigModal()" title="Configurar Planilha" class="glass-hud p-2.5 rounded-full text-slate-300 hover:text-white transition-all active:scale-90">
-                        <i class="fa-solid fa-gear text-sm"></i>
-                    </button>
-                    <button onclick="lockApp()" title="Bloquear Sistema" class="glass-hud p-2.5 rounded-full text-slate-300 hover:text-white transition-all active:scale-90">
-                        <i class="fa-solid fa-lock text-sm"></i>
-                    </button>
-                </div>
+                
+                <!-- Botão de Configuração da Planilha -->
+                <button onclick="openConfigModal()" title="Configurar Planilha" class="glass-pill p-2 rounded-full text-indigo-200 hover:text-white transition-all active:scale-90">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
             </div>
 
-            <!-- SELETOR DE MÊS + VALOR DO LUCRO -->
-            <div class="inline-flex items-center gap-2 text-xs text-slate-200 font-black uppercase tracking-wider glass-hud px-5 py-2.5 rounded-full shadow-2xl">
-                <i class="fa-solid fa-calendar-check text-cyber-neon text-sm"></i>
-                <span>LUCRO EM:</span>
-                <select id="month-filter" class="bg-transparent text-cyber-cyan font-black cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
-                </select>
-                <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
-            </div>
-
-            <div class="relative block my-2">
-                <h1 id="total-revenue-display" class="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-green via-emerald-300 to-cyber-cyan tracking-tight drop-shadow-[0_0_35px_rgba(48,209,88,0.35)]">
+            <div class="relative block my-1">
+                <h1 id="total-revenue-display" class="text-4xl sm:text-6xl md:text-7xl font-black text-[#30d158] tracking-tight drop-shadow-md leading-tight">
                     R$ 0,00
                 </h1>
             </div>
-            <p id="month-subtitle-display" class="text-xs sm:text-sm text-slate-400 font-semibold tracking-wide">
-                Lucro Líquido Real da Usina no Período Selecionado
+            <p id="month-subtitle-display" class="text-xs sm:text-sm text-indigo-200/80 font-medium tracking-wide">
+                Lucro Líquido da Usina no Período Selecionado
             </p>
-
-            <!-- CARD DE DESTAQUE: TOTAL KWH DA USINA -->
-            <div class="max-w-md mx-auto glass-hud rounded-3xl p-4 border border-cyber-cyan/30 flex items-center justify-between text-left shadow-2xl">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-cyber-gold/30 border border-cyber-gold/40 flex items-center justify-center text-cyber-gold">
-                        <i class="fa-solid fa-solar-panel text-xl"></i>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Geração Total Registrada</span>
-                        <span id="kpi-kwh" class="text-xl sm:text-2xl font-black text-white tracking-tight">0 kWh</span>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <span id="kpi-efficiency" class="text-xs font-black text-cyber-neon bg-cyber-neon/10 border border-cyber-neon/30 px-2.5 py-1 rounded-full uppercase tracking-wider">100% EFICIENTE</span>
-                </div>
-            </div>
-
-            <!-- CARD DE AVISO DE INADIMPLÊNCIA -->
-            <div id="unpaid-summary-box" class="max-w-md mx-auto glass-hud rounded-2xl p-3.5 border border-red-500/40 flex items-center justify-between text-xs font-semibold hidden">
-                <div class="flex items-center gap-3 text-red-400">
-                    <i class="fa-solid fa-triangle-exclamation text-lg animate-bounce"></i>
-                    <div class="text-left">
-                        <span class="block text-[10px] uppercase font-black tracking-wider text-red-300">Pendentes de Pagamento</span>
-                        <span id="unpaid-count-text" class="text-white font-bold">0 clientes devendo</span>
-                    </div>
-                </div>
-                <span id="unpaid-total-value" class="text-red-400 font-black text-base">R$ 0,00</span>
-            </div>
         </header>
 
-        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 space-y-6">
+        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
             
-            <!-- BARRA DE PESQUISA & FILTROS -->
-            <div class="glass-hud rounded-2xl p-3 flex flex-col md:flex-row gap-3 items-center justify-between">
-                <div class="relative w-full md:w-96">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="search-input" oninput="debounceFilter()" placeholder="Buscar cliente por nome..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyber-cyan">
-                </div>
-
-                <div class="flex items-center gap-2 w-full md:w-auto text-[11px] font-bold">
-                    <button onclick="setStatusFilter('todos')" id="filter-btn-todos" class="flex-1 md:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-cyber-cyan to-emerald-400 text-slate-950 transition-all font-black">Todos</button>
-                    <button onclick="setStatusFilter('pagos')" id="filter-btn-pagos" class="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white/5 text-slate-300 hover:text-white transition-all">Pagos</button>
-                    <button onclick="setStatusFilter('pendentes')" id="filter-btn-pendentes" class="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white/5 text-slate-300 hover:text-white transition-all">Pendentes</button>
-                </div>
-            </div>
-
-            <!-- CONTADOR DE CLIENTES -->
-            <div class="flex items-center justify-between px-1">
+            <div class="flex items-center justify-between mb-4 px-1">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-users text-cyber-cyan text-sm"></i>
-                    <span class="text-xs font-black uppercase tracking-wider text-slate-300">Clientes & Faturas</span>
+                    <i class="fa-solid fa-users text-app-green text-sm"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-200/80">Clientes & Faturas</span>
                 </div>
-                <span id="cards-count-badge" class="text-[11px] font-black bg-cyber-cyan/10 text-cyber-cyan px-3 py-1 rounded-full border border-cyber-cyan/20">0</span>
+                <span id="cards-count-badge" class="text-[11px] font-bold bg-white/10 text-white px-3 py-0.5 rounded-full border border-white/10">0</span>
             </div>
 
-            <!-- GRID DOS CARDS DE CLIENTES -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="cards-container"></div>
-
-            <!-- PAINEL GRÁFICO DUAL: DESEMPENHO E RENDIMENTO POR CLIENTE -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Gráfico 1: Evolução Financeira -->
-                <div class="glass-hud rounded-3xl p-6 border border-white/10 space-y-4">
-                    <h3 class="text-xs font-black text-cyber-cyan uppercase tracking-widest flex items-center gap-2 border-b border-white/10 pb-3">
-                        <i class="fa-solid fa-chart-line"></i> Evolução Financeira da Usina
-                    </h3>
-                    <div class="h-64 w-full">
-                        <canvas id="financialChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Gráfico 2: Rendimento por Cliente no Ano -->
-                <div class="glass-hud rounded-3xl p-6 border border-white/10 space-y-4">
-                    <h3 class="text-xs font-black text-cyber-gold uppercase tracking-widest flex items-center gap-2 border-b border-white/10 pb-3">
-                        <i class="fa-solid fa-chart-pie"></i> Participação de Rendimento por Cliente
-                    </h3>
-                    <div class="h-64 w-full flex items-center justify-center">
-                        <canvas id="clientShareChart"></canvas>
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="cards-container">
             </div>
         </main>
     </div>
 
-    <!-- MODAL DE DETALHES DO CLIENTE -->
+    <!-- MODAL DE DETALHES -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
     <div class="bottom-sheet" id="bottom-sheet">
         <div class="modal-pill"></div>
         
-        <div class="flex justify-between items-start mb-5 gap-3">
+        <div class="flex justify-between items-start mb-6 gap-3">
             <div class="pr-2">
                 <h3 id="modal-cliente-nome" class="text-2xl font-black capitalize leading-tight tracking-tight text-white break-words">Cliente</h3>
                 <p id="modal-mes-sub" class="text-xs text-slate-400 font-medium mt-1">Fatura do Mês</p>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
                 <span id="modal-status" class="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">STATUS</span>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white">
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-transform">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
         <div id="modal-content-body" class="space-y-4 mb-5">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
-                <span class="text-[10px] font-black uppercase tracking-wider text-cyber-cyan block border-b border-slate-800 pb-2">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs shadow-inner">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
                     <i class="fa-solid fa-file-invoice text-amber-400 mr-1"></i> Faturamento & Conta do Cliente
                 </span>
                 
                 <div class="flex justify-between items-center text-slate-300">
-                    <span>Consumo Medido:</span>
+                    <span class="font-medium">Consumo Medido:</span>
                     <span id="modal-kwh" class="font-bold text-white text-sm">0 kWh</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-300">
-                    <span>Valor Energia (R$ 0,81/kWh):</span>
+                    <span class="font-medium">Valor da Energia (R$ 0,81/kWh):</span>
                     <span id="modal-custo-kwh" class="font-semibold text-white">R$ 0,00</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-300">
-                    <span>Iluminação Pública (CIP):</span>
+                    <span class="font-medium">Iluminação Pública (CIP):</span>
                     <span id="modal-cip" class="font-semibold text-white">R$ 0,00</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-400 border-t border-slate-800/80 pt-2">
-                    <span>Sem Desconto:</span>
+                    <span class="font-medium">Valor Concessionária Sem Desconto:</span>
                     <span id="modal-valor-bruto" class="line-through text-red-400/90 font-medium">R$ 0,00</span>
                 </div>
-                <div class="flex justify-between items-center text-cyber-neon font-medium">
+                <div class="flex justify-between items-center text-emerald-400 font-medium">
                     <span>Desconto Aplicado (20% OFF):</span>
                     <span id="modal-desconto" class="font-bold">- R$ 0,00</span>
                 </div>
                 <div class="flex justify-between items-center text-white font-extrabold border-t border-slate-700 pt-2 text-sm">
-                    <span>Faturamento (Valor a Pagar):</span>
+                    <span>Faturamento do Cliente (Valor a Pagar):</span>
                     <span id="modal-faturamento" class="text-amber-300">R$ 0,00</span>
                 </div>
             </div>
 
-            <!-- CHAVE PIX COPIA E COLA -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block border-b border-slate-800 pb-2">
-                    <i class="fa-solid fa-qrcode text-emerald-400 mr-1"></i> PIX Copia e Cola
-                </span>
-                <div class="flex items-center gap-2 pt-1">
-                    <input type="text" id="pix-copy-input" readonly value="00020126360014BR.GOV.BCB.PIX..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-[11px] text-slate-300 focus:outline-none">
-                    <button onclick="copyPixCode()" class="px-3 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl text-xs hover:bg-emerald-500/30 whitespace-nowrap">
-                        Copiar
-                    </button>
-                </div>
-            </div>
-
-            <!-- CUSTOS OPERACIONAIS -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
-                <span class="text-[10px] font-black uppercase tracking-wider text-red-400 block border-b border-slate-800 pb-2">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
                     <i class="fa-solid fa-calculator text-red-400 mr-1"></i> Custos Operacionais da Usina
                 </span>
                 <div class="flex justify-between items-center text-slate-300">
-                    <span>Custo de Geração (R$ 0,17/kWh):</span>
+                    <span class="font-medium">Custo de Geração (R$ 0,17/kWh):</span>
                     <span id="modal-custo-kwh-usina" class="font-semibold text-red-400">- R$ 0,00</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-300">
-                    <span>Iluminação Pública Paga (CIP):</span>
+                    <span class="font-medium">Iluminação Pública Paga por Você (CIP):</span>
                     <span id="modal-cip-usina" class="font-semibold text-red-400">- R$ 0,00</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-200 font-bold border-t border-slate-800 pt-2">
@@ -347,22 +328,13 @@
             </div>
         </div>
 
-        <div id="modal-profit-box" class="bg-gradient-to-br from-cyber-cyan/20 via-emerald-500/10 to-transparent border border-cyber-cyan/30 rounded-2xl p-4 text-center mb-4">
-            <h4 id="modal-profit-label" class="text-xs text-cyber-cyan font-extrabold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
-            <h2 id="modal-valor-final" class="text-4xl font-black text-cyber-neon tracking-tight">R$ 0,00</h2>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-            <button id="btn-whatsapp-cobrar" onclick="sendWhatsAppBilling()" class="py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
-                <i class="fa-brands fa-whatsapp text-base"></i> WhatsApp
-            </button>
-            <button id="btn-manual-pay" onclick="toggleManualPaidState()" class="py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs uppercase tracking-wider transition-colors">
-                Baixa Manual
-            </button>
+        <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
+            <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
+            <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
         </div>
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA -->
+    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA LOCAL -->
     <div class="modal-overlay" id="config-overlay" onclick="closeConfigModal()"></div>
     <div class="bottom-sheet" id="config-sheet">
         <div class="modal-pill"></div>
@@ -372,19 +344,19 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <p class="text-xs text-slate-400 mb-4">A planilha fica salva com total privacidade **apenas neste navegador**.</p>
+        <p class="text-xs text-slate-400 mb-4">Insira o Link ou ID da sua planilha do Google Sheets. Ela ficará salva **apenas neste navegador**.</p>
         
         <div class="space-y-4">
             <div>
-                <label class="block text-xs font-bold text-cyber-cyan uppercase mb-1">Link ou ID da Planilha</label>
-                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyber-cyan">
+                <label class="block text-xs font-bold text-indigo-300 uppercase mb-1">Link ou ID da Planilha</label>
+                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-app-green">
             </div>
             
             <div class="flex gap-2">
-                <button onclick="saveSheetConfig()" class="flex-1 py-3.5 bg-gradient-to-r from-cyber-cyan to-emerald-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-colors">
+                <button onclick="saveSheetConfig()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-colors">
                     Salvar e Carregar
                 </button>
-                <button onclick="clearSheetConfig()" class="py-3.5 px-4 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 font-bold rounded-xl text-xs uppercase transition-colors">
+                <button onclick="clearSheetConfig()" class="py-3 px-4 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 font-bold rounded-xl text-xs uppercase transition-colors">
                     Limpar
                 </button>
             </div>
@@ -393,85 +365,31 @@
 
     <script>
         const STORAGE_KEY = 'solarinvest_sheet_id';
-        const MANUAL_PAID_KEY = 'solarinvest_manual_paids';
-        const DEFAULT_PIN = '1234';
         const TARIFA_KWH = 0.81;
         const CUSTO_KWH_USINA = 0.175126;
 
-        const NATIVE_MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const NATIVE_MONTHS = [
+            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+        ];
+
         const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status'];
 
         let globalAllInvoices = [];
         let globalAllClients = [];
         let currentFilteredCards = [];
-        let activeModalCardIndex = null;
-        let isPrivacyMode = false;
-        let activeStatusFilter = 'todos';
-        let chartInstance = null;
-        let clientChartInstance = null;
-        let debounceTimer = null;
 
         window.onload = () => {
-            updateGoianesiaWeather();
-        };
-
-        function updateGoianesiaWeather() {
-            const now = new Date();
-            const hour = now.getHours();
-            const weatherText = document.getElementById('weather-text');
-            const weatherIcon = document.getElementById('weather-icon');
-            const pill = document.getElementById('weather-status-pill');
-
-            if (hour >= 6 && hour < 18) {
-                weatherText.innerText = 'GOIANÉSIA • ENSOLARADO 32°C';
-                weatherIcon.className = 'fa-solid fa-sun text-cyber-gold text-sm animate-bounce';
-                pill.className = 'inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider glass-hud px-4 py-2 rounded-full shadow-2xl text-amber-300';
-            } else {
-                weatherText.innerText = 'GOIANÉSIA • NOITE LIMPA 24°C';
-                weatherIcon.className = 'fa-solid fa-moon text-cyber-cyan text-sm animate-pulse';
-                pill.className = 'inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider glass-hud px-4 py-2 rounded-full shadow-2xl text-cyber-cyan';
-            }
-        }
-
-        function handlePinSubmit(e) {
-            e.preventDefault();
-            const input = document.getElementById('pin-input').value;
-            if (input === DEFAULT_PIN) {
-                document.getElementById('pin-screen').classList.add('hidden');
-                document.getElementById('loading-screen').classList.remove('hidden');
-                initApp();
-            } else {
-                document.getElementById('pin-error').classList.remove('hidden');
-            }
-        }
-
-        function lockApp() {
-            document.getElementById('pin-input').value = '';
-            document.getElementById('pin-error').classList.add('hidden');
-            document.getElementById('pin-screen').classList.remove('hidden');
-        }
-
-        function initApp() {
             const savedId = getStoredSheetId();
             if (!savedId) {
-                showConfigScreen('Adicione o ID da planilha para iniciar o dashboard.');
+                showConfigScreen('Por favor, adicione o ID ou Link da sua planilha para carregar os dados.');
             } else {
                 loadAdminData();
             }
-        }
+        };
 
-        function getStoredSheetId() { return localStorage.getItem(STORAGE_KEY) || ''; }
-        function getManualPaids() { try { return JSON.parse(localStorage.getItem(MANUAL_PAID_KEY)) || []; } catch(e) { return []; } }
-
-        function saveManualPaid(key) {
-            const paids = getManualPaids();
-            if (!paids.includes(key)) paids.push(key);
-            localStorage.setItem(MANUAL_PAID_KEY, JSON.stringify(paids));
-        }
-
-        function removeManualPaid(key) {
-            let paids = getManualPaids().filter(k => k !== key);
-            localStorage.setItem(MANUAL_PAID_KEY, JSON.stringify(paids));
+        function getStoredSheetId() {
+            return localStorage.getItem(STORAGE_KEY) || '';
         }
 
         function extractSheetId(input) {
@@ -483,14 +401,17 @@
         function saveSheetConfig() {
             const rawVal = document.getElementById('input-sheet-id').value;
             const extracted = extractSheetId(rawVal);
-            if (!extracted) { alert('ID ou Link inválido.'); return; }
+            if (!extracted) {
+                alert('Por favor, insira um ID ou Link válido.');
+                return;
+            }
             localStorage.setItem(STORAGE_KEY, extracted);
             closeConfigModal();
             location.reload();
         }
 
         function clearSheetConfig() {
-            if (confirm('Remover planilha deste navegador?')) {
+            if (confirm('Deseja remover a planilha salva deste navegador?')) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
@@ -501,7 +422,10 @@
             const overlay = document.getElementById('config-overlay');
             const sheet = document.getElementById('config-sheet');
             overlay.style.display = 'block';
-            setTimeout(() => { overlay.style.opacity = '1'; sheet.style.transform = 'translate(-50%, 0)'; }, 10);
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            }, 10);
         }
 
         function closeConfigModal() {
@@ -510,34 +434,6 @@
             sheet.style.transform = 'translate(-50%, 100%)';
             overlay.style.opacity = '0';
             setTimeout(() => { overlay.style.display = 'none'; }, 350);
-        }
-
-        function togglePrivacyMode() {
-            isPrivacyMode = !isPrivacyMode;
-            document.getElementById('btn-privacy').innerHTML = isPrivacyMode ? `<i class="fa-solid fa-eye-slash text-red-400"></i>` : `<i class="fa-solid fa-eye text-sm"></i>`;
-            renderDashboard();
-        }
-
-        function setStatusFilter(status) {
-            activeStatusFilter = status;
-            ['todos', 'pagos', 'pendentes'].forEach(s => {
-                const btn = document.getElementById(`filter-btn-${s}`);
-                btn.className = (s === status) 
-                    ? "flex-1 md:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-cyber-cyan to-emerald-400 text-slate-950 transition-all font-black"
-                    : "flex-1 md:flex-none px-4 py-2 rounded-xl bg-white/5 text-slate-300 hover:text-white transition-all";
-            });
-            filterDataByMonth();
-        }
-
-        function formatCurrency(val) {
-            if (isPrivacyMode) return 'R$ ***';
-            if (typeof val === 'number') return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            return val;
-        }
-
-        function debounceFilter() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => { filterDataByMonth(); }, 200);
         }
 
         function parseCSV(str) {
@@ -587,29 +483,41 @@
                         }
                         return parseCSV(text);
                     }
-                } catch (e) { lastError = e; }
+                } catch (e) {
+                    lastError = e;
+                }
             }
-            throw lastError || new Error('Erro ao acessar planilha');
+            throw lastError || new Error('Falha ao acessar planilha');
         }
 
         function showConfigScreen(msg) {
             const loadingScreen = document.getElementById('loading-screen');
-            loadingScreen.classList.remove('hidden');
             loadingScreen.innerHTML = `
                 <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
-                    <div class="w-12 h-12 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/20 text-cyber-cyan flex items-center justify-center mx-auto mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
                         <i class="fa-solid fa-table text-xl"></i>
                     </div>
-                    <h3 class="text-white font-black text-lg mb-2">Configurar Planilha</h3>
-                    <p class="text-xs text-slate-300 mb-5 leading-relaxed">${msg}</p>
-                    <button onclick="openConfigModal()" class="w-full py-3 bg-gradient-to-r from-cyber-cyan to-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider">Adicionar Planilha</button>
+                    <h3 class="text-white font-black text-lg mb-2">Configuração Inicial</h3>
+                    <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${msg}</p>
+                    <div class="space-y-2">
+                        <button onclick="openConfigModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Adicionar Planilha</button>
+                    </div>
                 </div>
             `;
         }
 
         async function loadAdminData() {
             try {
-                let loginData = await fetchGoogleSheet('login');
+                let loginData = [];
+                try {
+                    loginData = await fetchGoogleSheet('login');
+                } catch (e) {
+                    if (e.message === 'PLANILHA_PRIVADA') {
+                        throw new Error('A sua planilha precisa estar pública ("Qualquer pessoa com o link").');
+                    }
+                    throw e;
+                }
+
                 const cipMap = {};
                 globalAllClients = [];
 
@@ -618,8 +526,11 @@
                         const clientName = r[0].trim();
                         const clientKey = clientName.toLowerCase();
                         if (HEADER_WORDS.includes(clientKey)) return;
+
                         cipMap[clientKey] = safeParseFloat(r[1]);
-                        if(!globalAllClients.some(c => c.toLowerCase() === clientKey)) globalAllClients.push(clientName);
+                        if(!globalAllClients.some(c => c.toLowerCase() === clientKey)) {
+                            globalAllClients.push(clientName);
+                        }
                     }
                 });
 
@@ -629,15 +540,19 @@
                 for (const sheetName of possibleSheetNames) {
                     try {
                         const res = await fetchGoogleSheet(sheetName);
-                        if (res && res.length > 0) { invoicesData = res; break; }
+                        if (res && res.length > 0) {
+                            invoicesData = res;
+                            break;
+                        }
                     } catch (e) {}
                 }
 
-                if (invoicesData.length > 0) invoicesData.shift();
+                if (invoicesData.length > 0) {
+                    invoicesData.shift();
+                }
 
                 globalAllInvoices = [];
                 const monthsArray = [];
-                const manualPaids = getManualPaids();
 
                 for(let row of invoicesData) {
                     while(row.length < 7) row.push(""); 
@@ -647,43 +562,49 @@
                     const clienteKey = clienteNome.toLowerCase();
                     if (HEADER_WORDS.includes(clienteKey)) continue;
 
-                    if(!globalAllClients.some(c => c.toLowerCase() === clienteKey)) globalAllClients.push(clienteNome);
+                    if(!globalAllClients.some(c => c.toLowerCase() === clienteKey)) {
+                        globalAllClients.push(clienteNome);
+                    }
 
                     const consumoNum = safeParseFloat(row[1]);
                     const clientCip = cipMap[clienteKey] !== undefined ? cipMap[clienteKey] : 0;
                     
                     const custoKwhNum = consumoNum * TARIFA_KWH;
                     const valorBruto = custoKwhNum + clientCip;
+                    
                     const faturamentoCalculado = valorBruto * 0.80; 
                     const descontoReais = valorBruto - faturamentoCalculado;
                     
                     const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
                     const custoTotalUsina = custoProducaoKwh + clientCip;
+                    
                     const lucroLiquido = faturamentoCalculado - custoTotalUsina;
 
                     const mes = row[4] ? row[4].trim() : "Outro";
                     const statusStr = (row[6] ? row[6].toLowerCase() : "");
-                    const uniqueInvoiceKey = `${clienteKey}_${mes.toLowerCase()}`;
-                    
-                    const isPaid = statusStr.includes('pago') || manualPaids.includes(uniqueInvoiceKey);
+                    const isPaid = statusStr.includes('pago');
 
                     if(mes && !HEADER_WORDS.includes(mes.toLowerCase()) && !monthsArray.includes(mes)) {
                         monthsArray.push(mes);
                     }
 
                     globalAllInvoices.push({
-                        invoiceKey: uniqueInvoiceKey,
                         cliente: clienteNome,
                         consumoNum: consumoNum,
                         consumo: consumoNum.toString(),
-                        custoKwhNum: custoKwhNum,
+                        custoKwhStr: custoKwhNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         valorBrutoNum: valorBruto,
                         faturamentoNum: faturamentoCalculado,
                         lucroLiquidoNum: lucroLiquido,
                         custoProducaoKwhNum: custoProducaoKwh,
                         custoTotalUsinaNum: custoTotalUsina,
-                        descontoNum: descontoReais,
-                        cipNum: clientCip,
+                        faturamentoStr: faturamentoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        custoProducaoKwhStr: custoProducaoKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        custoTotalUsinaStr: custoTotalUsina.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        valorBruto: valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        desconto: descontoReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        cipStr: clientCip.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         mes: mes,
                         status: isPaid ? 'pago' : 'pendente'
                     });
@@ -700,13 +621,15 @@
 
                 const monthSelect = document.getElementById('month-filter');
                 monthSelect.innerHTML = '';
+                
                 monthsArray.forEach(m => {
-                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#070514] text-white">${m.toUpperCase()}</option>`;
+                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#0a081d] text-white">${m.toUpperCase()}</option>`;
                 });
-                monthSelect.innerHTML += `<option value="TODOS" class="bg-[#070514] text-white">TODOS OS MESES</option>`;
+                monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
 
                 const now = new Date();
                 const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
+                
                 let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
                 
                 if (matchedCurrentMonth) {
@@ -716,33 +639,32 @@
                 }
 
                 filterDataByMonth();
-                renderChart(monthsArray);
-                renderClientShareChart();
 
                 const loadingScreen = document.getElementById('loading-screen');
                 loadingScreen.style.opacity = '0';
                 setTimeout(() => {
-                    loadingScreen.classList.add('hidden');
+                    loadingScreen.style.display = 'none';
                     initClean3DScene();
                 }, 450);
 
             } catch (error) {
-                console.error("Erro no app:", error);
-                showConfigScreen(error.message || 'Falha na conexão com a planilha.');
+                console.error("Erro ao carregar dados ADM:", error);
+                showConfigScreen(error.message || 'Erro ao ler dados da planilha.');
             }
         }
 
         function filterDataByMonth() {
             const selectedMonth = document.getElementById('month-filter').value;
-            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
             currentFilteredCards = [];
-            let rawCards = [];
 
             if (selectedMonth === 'TODOS') {
-                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Acumulado (Todos os Meses)';
-                globalAllInvoices.forEach(inv => rawCards.push({ hasData: true, ...inv }));
+                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Total Acumulado (Todos os Meses)';
+                globalAllInvoices.forEach(inv => {
+                    currentFilteredCards.push({ hasData: true, ...inv });
+                });
             } else {
-                document.getElementById('month-subtitle-display').innerText = `Lucro Líquido Real em ${selectedMonth}`;
+                document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${selectedMonth}`;
+                
                 globalAllClients.forEach(clientName => {
                     const matchedInvoice = globalAllInvoices.find(
                         inv => inv.cliente.toLowerCase() === clientName.toLowerCase() && 
@@ -750,28 +672,33 @@
                     );
 
                     if (matchedInvoice) {
-                        rawCards.push({ hasData: true, ...matchedInvoice });
+                        currentFilteredCards.push({ hasData: true, ...matchedInvoice });
                     } else {
-                        rawCards.push({
-                            hasData: false, cliente: clientName, consumo: '--',
-                            custoKwhNum: 0, valorBrutoNum: 0, faturamentoNum: 0,
-                            lucroLiquidoNum: 0, custoProducaoKwhNum: 0, custoTotalUsinaNum: 0,
-                            descontoNum: 0, cipNum: 0, mes: selectedMonth, status: 'sem_dados'
+                        currentFilteredCards.push({
+                            hasData: false,
+                            cliente: clientName,
+                            consumo: '--',
+                            custoKwhStr: 'R$ 0,00',
+                            valorBrutoNum: 0,
+                            faturamentoNum: 0,
+                            lucroLiquidoNum: 0,
+                            custoProducaoKwhNum: 0,
+                            custoTotalUsinaNum: 0,
+                            faturamentoStr: '--',
+                            lucroStr: '--',
+                            custoProducaoKwhStr: 'R$ 0,00',
+                            custoTotalUsinaStr: 'R$ 0,00',
+                            valorBruto: '--',
+                            desconto: '--',
+                            cipStr: 'R$ 0,00',
+                            mes: selectedMonth,
+                            status: 'sem_dados'
                         });
                     }
                 });
             }
 
-            currentFilteredCards = rawCards.filter(c => {
-                const matchesSearch = c.cliente.toLowerCase().includes(searchVal);
-                let matchesStatus = true;
-                if (activeStatusFilter === 'pagos') matchesStatus = c.hasData && c.status === 'pago';
-                if (activeStatusFilter === 'pendentes') matchesStatus = c.hasData && c.status === 'pendente';
-                return matchesSearch && matchesStatus;
-            });
-
             renderDashboard();
-            renderClientShareChart();
         }
 
         function renderDashboard() {
@@ -779,41 +706,18 @@
             container.innerHTML = '';
 
             let totalLucroMes = 0;
-            let totalUnpaidVal = 0;
-            let unpaidCount = 0;
-            let totalKwhMes = 0;
-
             currentFilteredCards.forEach(c => {
-                if(c.hasData) {
-                    totalLucroMes += c.lucroLiquidoNum;
-                    totalKwhMes += c.consumoNum;
-                    if(c.status === 'pendente') {
-                        unpaidCount++;
-                        totalUnpaidVal += c.faturamentoNum;
-                    }
-                }
+                if(c.hasData) totalLucroMes += c.lucroLiquidoNum;
             });
 
-            document.getElementById('total-revenue-display').innerText = formatCurrency(totalLucroMes);
+            document.getElementById('total-revenue-display').innerText = totalLucroMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('cards-count-badge').innerText = currentFilteredCards.length;
-            document.getElementById('kpi-kwh').innerText = `${totalKwhMes.toLocaleString('pt-BR')} kWh`;
 
-            const unpaidBox = document.getElementById('unpaid-summary-box');
-            if(unpaidCount > 0) {
-                unpaidBox.classList.remove('hidden');
-                document.getElementById('unpaid-count-text').innerText = `${unpaidCount} cliente(s) devendo`;
-                document.getElementById('unpaid-total-value').innerText = formatCurrency(totalUnpaidVal);
-            } else {
-                unpaidBox.classList.add('hidden');
-            }
-
-            // SE NÃO HOUVER DADOS: MOSTRA O SOL PULANDO EM NEON
             if(currentFilteredCards.length === 0) {
                 container.innerHTML = `
-                    <div class="col-span-full p-12 text-center glass-hud rounded-3xl my-4 space-y-3">
-                        <i class="fa-solid fa-sun text-5xl text-cyber-gold animate-bounce"></i>
-                        <h4 class="text-base font-black text-white">Nenhum Registro Encontrado</h4>
-                        <p class="text-xs text-slate-400 max-w-xs mx-auto">Não há faturas para este filtro ou mês selecionado na usina.</p>
+                    <div class="col-span-full p-10 text-center glass-card rounded-2xl my-4">
+                        <i class="fa-solid fa-folder-open text-3xl text-indigo-300/40 mb-3"></i>
+                        <p class="text-sm text-slate-300 font-medium">Nenhum registro encontrado para este período.</p>
                     </div>
                 `;
                 return;
@@ -827,47 +731,47 @@
                 if (item.hasData) {
                     const isPaid = item.status === 'pago';
                     statusBadge = isPaid 
-                        ? `<span class="bg-cyber-neon/20 text-cyber-neon border border-cyber-neon/30 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">RECEBIDO</span>` 
+                        ? `<span class="bg-[#30d158] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm flex-shrink-0">RECEBIDO</span>` 
                         : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">PENDENTE</span>`;
 
                     subtextHtml = `
-                        <i class="fa-solid fa-bolt text-amber-400 text-[11px] mr-1"></i>
-                        Mês: ${item.mes} • Faturamento: ${formatCurrency(item.faturamentoNum)}
+                        <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
+                        Mês: ${item.mes} • Faturamento: ${item.faturamentoStr}
                     `;
 
-                    profitHtml = `<span class="text-2xl font-black text-cyber-neon tracking-tight leading-none">${formatCurrency(item.lucroLiquidoNum)}</span>`;
+                    profitHtml = `<span class="text-2xl font-black text-[#30d158] tracking-tight leading-none">${item.lucroStr}</span>`;
                 } else {
-                    statusBadge = `<span class="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">SEM LANCAM.</span>`;
+                    statusBadge = `<span class="bg-slate-100 text-slate-400 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">SEM DADOS</span>`;
 
                     subtextHtml = `
-                        <i class="fa-solid fa-circle-minus text-slate-400 text-[11px] mr-1"></i>
+                        <i class="fa-solid fa-circle-minus text-slate-300 text-[11px] mr-1"></i>
                         Mês: ${item.mes} • Consumo: -- kWh
                     `;
 
-                    profitHtml = `<span class="text-xl font-bold text-slate-400 tracking-tight leading-none">--</span>`;
+                    profitHtml = `<span class="text-xl font-bold text-slate-300 tracking-tight leading-none">--</span>`;
                 }
 
                 container.innerHTML += `
-                    <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.02}s">
+                    <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.03}s">
                         <div class="p-5 flex-1 flex flex-col justify-between gap-4">
                             <div>
                                 <div class="flex justify-between items-start gap-2 mb-2">
-                                    <h2 class="font-black text-slate-900 text-base leading-snug capitalize tracking-tight break-words pr-1">${item.cliente}</h2>
+                                    <h2 class="font-extrabold text-slate-900 text-base leading-snug capitalize tracking-tight break-words pr-1">${item.cliente}</h2>
                                     ${statusBadge}
                                 </div>
-                                <p class="text-xs text-slate-500 font-bold">
+                                <p class="text-xs text-slate-500 font-semibold">
                                     ${subtextHtml}
                                 </p>
                             </div>
 
                             <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline gap-2">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">LUCRO LÍQUIDO</span>
+                                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">LUCRO USINA</span>
                                 ${profitHtml}
                             </div>
                         </div>
 
-                        <button onclick="openModal(${index})" class="py-3 px-4 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-600 font-extrabold text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
-                            <span>Painel Completo</span>
+                        <button onclick="openModal(${index})" class="card-details-btn">
+                            <span>Mais detalhes</span>
                             <i class="fa-solid fa-chevron-right text-[9px]"></i>
                         </button>
                     </div>
@@ -876,202 +780,81 @@
         }
 
         function openModal(index) {
-            activeModalCardIndex = index;
             const card = currentFilteredCards[index];
 
             document.getElementById('modal-cliente-nome').innerText = card.cliente;
-            document.getElementById('modal-mes-sub').innerText = `Detalhamento referente a ${card.mes}`;
+            document.getElementById('modal-mes-sub').innerText = `Fatura referente a ${card.mes}`;
 
             const badge = document.getElementById('modal-status');
             const contentBody = document.getElementById('modal-content-body');
             const profitBox = document.getElementById('modal-profit-box');
             const profitLabel = document.getElementById('modal-profit-label');
-            const btnPay = document.getElementById('btn-manual-pay');
-            const btnWp = document.getElementById('btn-whatsapp-cobrar');
 
             if (card.hasData) {
                 const isPaid = card.status === 'pago';
-                badge.innerText = isPaid ? 'PAGO / CONFIRMADO' : 'AGUARDANDO PAGAMENTO';
-                badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-cyber-neon/20 text-cyber-neon border border-cyber-neon/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
+                badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
+                badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
 
                 contentBody.style.display = 'block';
-                btnPay.style.display = 'block';
-                btnWp.style.display = isPaid ? 'none' : 'flex';
-
-                btnPay.innerText = isPaid ? 'Tornar Pendente' : 'Marcar como Pago';
                 
                 document.getElementById('modal-kwh').innerText = `${card.consumo} kWh`;
-                document.getElementById('modal-custo-kwh').innerText = formatCurrency(card.custoKwhNum);
-                document.getElementById('modal-cip').innerText = formatCurrency(card.cipNum);
-                document.getElementById('modal-valor-bruto').innerText = formatCurrency(card.valorBrutoNum);
-                document.getElementById('modal-desconto').innerText = `- ${formatCurrency(card.descontoNum)}`;
-                document.getElementById('modal-faturamento').innerText = formatCurrency(card.faturamentoNum);
+                document.getElementById('modal-custo-kwh').innerText = card.custoKwhStr;
+                document.getElementById('modal-cip').innerText = card.cipStr;
+                document.getElementById('modal-valor-bruto').innerText = card.valorBruto;
+                document.getElementById('modal-desconto').innerText = `- ${card.desconto}`;
+                document.getElementById('modal-faturamento').innerText = card.faturamentoStr;
                 
-                document.getElementById('modal-custo-kwh-usina').innerText = formatCurrency(card.custoProducaoKwhNum);
-                document.getElementById('modal-cip-usina').innerText = formatCurrency(card.cipNum);
-                document.getElementById('modal-custo-total').innerText = formatCurrency(card.custoTotalUsinaNum);
+                document.getElementById('modal-custo-kwh-usina').innerText = card.custoProducaoKwhStr;
+                document.getElementById('modal-cip-usina').innerText = card.cipStr;
+                document.getElementById('modal-custo-total').innerText = card.custoTotalUsinaStr;
 
-                profitBox.className = "bg-gradient-to-br from-cyber-cyan/20 via-emerald-500/10 to-transparent border border-cyber-cyan/30 rounded-2xl p-4 text-center mb-4";
+                profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
                 profitLabel.innerText = "Seu Lucro Líquido Final";
-                document.getElementById('modal-valor-final').className = "text-4xl font-black text-cyber-neon tracking-tight";
-                document.getElementById('modal-valor-final').innerText = formatCurrency(card.lucroLiquidoNum);
+                document.getElementById('modal-valor-final').className = "text-4xl font-black text-app-green tracking-tight";
+                document.getElementById('modal-valor-final').innerText = card.lucroStr;
             } else {
-                badge.innerText = 'SEM REGISTRO';
+                badge.innerText = 'SEM LANÇAMENTO';
                 badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700';
 
                 contentBody.style.display = 'none';
-                btnPay.style.display = 'none';
-                btnWp.style.display = 'none';
 
-                profitBox.className = "bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center mb-4";
-                profitLabel.innerText = `Nenhum consumo em ${card.mes}`;
+                profitBox.className = "bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center";
+                profitLabel.innerText = `Nenhum consumo registrado em ${card.mes}`;
                 document.getElementById('modal-valor-final').className = "text-2xl font-bold text-slate-400 tracking-tight mt-1";
                 document.getElementById('modal-valor-final').innerText = "Sem Fatura";
             }
 
             const overlay = document.getElementById('modal-overlay');
             const sheet = document.getElementById('bottom-sheet');
+
             overlay.style.display = 'block';
-            setTimeout(() => { overlay.style.opacity = '1'; sheet.style.transform = 'translate(-50%, 0)'; }, 10);
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            }, 10);
         }
 
         function closeModal() {
             const overlay = document.getElementById('modal-overlay');
             const sheet = document.getElementById('bottom-sheet');
+
             sheet.style.transform = 'translate(-50%, 100%)';
             overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 350);
+            setTimeout(() => { 
+                overlay.style.display = 'none'; 
+            }, 350);
         }
 
-        function toggleManualPaidState() {
-            if (activeModalCardIndex === null) return;
-            const card = currentFilteredCards[activeModalCardIndex];
-            if(!card || !card.invoiceKey) return;
-
-            if (card.status === 'pago') {
-                removeManualPaid(card.invoiceKey);
-                card.status = 'pendente';
-            } else {
-                saveManualPaid(card.invoiceKey);
-                card.status = 'pago';
-            }
-
-            const globalInv = globalAllInvoices.find(i => i.invoiceKey === card.invoiceKey);
-            if(globalInv) globalInv.status = card.status;
-
-            openModal(activeModalCardIndex);
-            renderDashboard();
-        }
-
-        function copyPixCode() {
-            const input = document.getElementById('pix-copy-input');
-            input.select();
-            navigator.clipboard.writeText(input.value);
-            alert('Chave PIX Copiada!');
-        }
-
-        function sendWhatsAppBilling() {
-            if (activeModalCardIndex === null) return;
-            const card = currentFilteredCards[activeModalCardIndex];
-            if (!card) return;
-
-            const msg = `Olá *${card.cliente}*! Tudo certo?\n\nSegue a fatura de energia solar da usina de *${card.mes}*:\n\n⚡ Consumo: ${card.consumo} kWh\n💰 Valor a Pagar (20% OFF): R$ ${card.faturamentoNum.toFixed(2).replace('.', ',')}\n\nQualquer dúvida me avise! ☀️`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function renderChart(months) {
-            const ctx = document.getElementById('financialChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-
-            const monthLabels = months.length > 0 ? months : ['Jan', 'Fev', 'Mar'];
-            const revenueData = monthLabels.map(m => globalAllInvoices.filter(i => i.mes.toLowerCase() === m.toLowerCase()).reduce((acc, curr) => acc + curr.faturamentoNum, 0));
-            const profitData = monthLabels.map(m => globalAllInvoices.filter(i => i.mes.toLowerCase() === m.toLowerCase()).reduce((acc, curr) => acc + curr.lucroLiquidoNum, 0));
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: monthLabels.map(m => m.toUpperCase()),
-                    datasets: [
-                        {
-                            label: 'Faturamento Clientes',
-                            data: revenueData,
-                            borderColor: '#00f2fe',
-                            backgroundColor: 'rgba(0, 242, 254, 0.1)',
-                            borderWidth: 3, fill: true, tension: 0.4
-                        },
-                        {
-                            label: 'Lucro Líquido Usina',
-                            data: profitData,
-                            borderColor: '#30d158',
-                            backgroundColor: 'rgba(48, 209, 88, 0.15)',
-                            borderWidth: 3, fill: true, tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' } } } },
-                    scales: {
-                        x: { ticks: { color: '#64748b' }, grid: { display: false } },
-                        y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-                    }
-                }
-            });
-        }
-
-        // NOVO GRÁFICO: PARTICIPAÇÃO E RENDIMENTO POR CLIENTE
-        function renderClientShareChart() {
-            const ctx = document.getElementById('clientShareChart').getContext('2d');
-            if (clientChartInstance) clientChartInstance.destroy();
-
-            const clientTotals = {};
-            currentFilteredCards.forEach(c => {
-                if(c.hasData) {
-                    clientTotals[c.cliente] = (clientTotals[c.cliente] || 0) + c.lucroLiquidoNum;
-                }
-            });
-
-            const labels = Object.keys(clientTotals);
-            const data = Object.values(clientTotals);
-
-            if (labels.length === 0) {
-                labels.push('Sem Dados');
-                data.push(1);
-            }
-
-            const colors = ['#00f2fe', '#30d158', '#ffb703', '#7928ca', '#ff007f', '#00ff87'];
-
-            clientChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors.slice(0, labels.length),
-                        borderColor: '#070514',
-                        borderWidth: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' } } }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-
-        // MOTOR 3D DUAL: CASA + PLACA SOLAR CIBERNÉTICA
-        let scene, camera, renderer, controls, solarLight;
+        let scene, camera, renderer, controls;
 
         function initClean3DScene() {
             const container = document.getElementById('canvas-container');
             if(container.children.length > 0) return; 
 
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            const aspect = container.clientWidth / container.clientHeight;
+            
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
             camera.position.set(0, 2.5, 12.0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -1080,34 +863,31 @@
             container.appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true; controls.dampingFactor = 0.05;
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
             controls.maxPolarAngle = Math.PI / 2.1;
+            controls.minDistance = 6;
+            controls.maxDistance = 18;
+            controls.target.set(0, 0, 0);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-            solarLight = new THREE.DirectionalLight(0xffb703, 2.0);
-            solarLight.position.set(6, 12, 8); 
-            scene.add(solarLight);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.95); 
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.4); 
+            dirLight.position.set(4, 12, 8); 
+            scene.add(dirLight);
 
-            // Adiciona Painel Solar 3D Dinâmico no topo da cena
-            const panelGeo = new THREE.BoxGeometry(4, 0.1, 2.5);
-            const panelMat = new THREE.MeshStandardMaterial({ color: 0x0a192f, metalness: 0.9, roughness: 0.1 });
-            const solarPanel = new THREE.Mesh(panelGeo, panelMat);
-            solarPanel.position.set(0, 3.2, -1);
-            solarPanel.rotation.x = 0.4;
-            scene.add(solarPanel);
-
-            // Carrega a casa
-            new THREE.GLTFLoader().load('./casa.glb', (gltf) => {
+            const loader = new THREE.GLTFLoader();
+            loader.load('./casa.glb', (gltf) => {
                 const houseModel = gltf.scene;
                 houseModel.position.set(0, -1.0, 0);
                 houseModel.scale.set(0.75, 0.75, 0.75);
                 scene.add(houseModel);
-            });
+            }, undefined, () => {});
 
             function animate() {
                 requestAnimationFrame(animate);
                 controls.update();
-                if(solarPanel) solarPanel.rotation.y += 0.002;
                 renderer.render(scene, camera);
             }
             animate();
