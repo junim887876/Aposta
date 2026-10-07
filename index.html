@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Solar Invest Gestão</title>
 
-    <!-- OneSignal Push Notifications -->
+    <!-- OneSignal Push Notifications (Configurado com escopo /Aposta/) -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "cdaac970-644b-46bc-8282-10cfd1fb9d2e",
+          serviceWorkerPath: "sw.js",
+          serviceWorkerParam: { scope: "/Aposta/" },
         });
       });
     </script>
@@ -23,20 +25,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SolarInvest">
     <link rel="apple-touch-icon" href="logo.jpg?v=2">
-
-    <!-- Script de Registro do Service Worker -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js?v=2')
-            .then(reg => {
-              console.log('PWA ativo com sucesso!', reg);
-              reg.update();
-            })
-            .catch(err => console.error('Erro ao registrar PWA:', err));
-        });
-      }
-    </script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
