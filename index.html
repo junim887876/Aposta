@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Solar Invest</title>
+    <title>SolarInvest • Energia que Gera Economia</title>
 
     <!-- OneSignal Push Notifications (Configurado com escopo /Aposta/) -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -19,12 +19,12 @@
     </script>
 
     <!-- Configurações PWA com Cache Busting -->
-    <link rel="manifest" href="./manifest.json?v=4">
-    <meta name="theme-color" content="#080716">
+    <link rel="manifest" href="./manifest.json?v=5">
+    <meta name="theme-color" content="#050814">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SolarInvest">
-    <link rel="apple-touch-icon" href="logo.jpg?v=4">
+    <link rel="apple-touch-icon" href="logo.jpg?v=5">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,14 +44,9 @@
                 extend: {
                     fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'] },
                     colors: {
-                        'app-bg': '#080716',
-                        'app-green': '#30d158',
-                        'app-green-dark': '#00c853',
-                        'app-orange': '#ff9f0a',
-                        'app-red': '#ff453a'
-                    },
-                    boxShadow: {
-                        'apple-glow': '0 0 40px rgba(48, 209, 88, 0.25)'
+                        'solar-bg': '#050814',
+                        'solar-neon': '#39ff4d',
+                        'solar-gold': '#fbbf24'
                     }
                 }
             }
@@ -60,26 +55,53 @@
     
     <style>
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
-        html, body { touch-action: manipulation; height: 100%; background-color: #080716; color: #ffffff; overflow-x: hidden; }
+        html, body { 
+            touch-action: manipulation; 
+            min-height: 100%; 
+            background-color: #050814; 
+            color: #ffffff; 
+            overflow-x: hidden; 
+        }
         .tabular-nums { font-variant-numeric: tabular-nums; }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 99px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050814; }
+        ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 99px; }
 
-        .glass-pill {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        /* Fundo atmosférico com feixes de luz azul e verde */
+        .page-ambient-bg {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 12% 18%, rgba(245, 158, 11, 0.14) 0%, transparent 42%),
+                radial-gradient(circle at 88% 22%, rgba(14, 165, 233, 0.22) 0%, transparent 48%),
+                radial-gradient(circle at 50% 38%, rgba(16, 185, 129, 0.12) 0%, transparent 55%),
+                linear-gradient(180deg, #090e24 0%, #050814 55%, #040711 100%);
+            pointer-events: none;
+            z-index: 0;
         }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        /* Feixe luminoso lateral direito */
+        .neon-slash-right {
+            position: fixed;
+            top: 8%;
+            right: -60px;
+            width: 340px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #38bdf8, #60a5fa);
+            box-shadow: 0 0 24px #38bdf8, 0 0 48px #2563eb;
+            transform: rotate(-48deg);
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Linha luminosa na base da página */
+        .bottom-neon-line {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent 0%, #22c55e 25%, #39ff4d 50%, #0ea5e9 75%, transparent 100%);
+            box-shadow: 0 -2px 20px rgba(57, 255, 77, 0.45);
         }
 
         #canvas-container { 
@@ -87,17 +109,110 @@
             top: 0; 
             left: 0; 
             width: 100%; 
-            height: 33vh; 
-            min-height: 220px;
+            height: 290px; 
             z-index: 1; 
             pointer-events: auto;
-            background: radial-gradient(circle at 50% 30%, #191547 0%, #080716 85%);
-            mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+            opacity: 0.55;
+            mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
         }
 
-        @media (min-width: 768px) {
-            #canvas-container { height: 37vh; }
+        /* Hero Card de Lucro com borda luminosa degradê */
+        .hero-profit-box {
+            position: relative;
+            border-radius: 26px;
+            background: linear-gradient(135deg, rgba(22, 32, 58, 0.85) 0%, rgba(11, 18, 36, 0.92) 55%, rgba(12, 38, 34, 0.88) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 
+                0 22px 50px rgba(0, 0, 0, 0.65),
+                0 0 38px rgba(57, 255, 77, 0.16),
+                inset 0 1px 1px rgba(255, 255, 255, 0.18);
+        }
+        .hero-profit-box::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 26px;
+            padding: 1.5px;
+            background: linear-gradient(125deg, rgba(148, 163, 184, 0.45), rgba(56, 189, 248, 0.35), rgba(57, 255, 77, 0.75));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Ícone circular do raio verde no Hero */
+        .bolt-orb {
+            background: radial-gradient(circle at 35% 30%, rgba(57, 255, 77, 0.25), rgba(16, 185, 129, 0.06));
+            border: 1.5px solid rgba(57, 255, 77, 0.65);
+            box-shadow: 0 0 28px rgba(57, 255, 77, 0.35), inset 0 0 16px rgba(57, 255, 77, 0.2);
+        }
+
+        /* Card de Cliente Dark Glass fiel à imagem */
+        .client-dark-card {
+            position: relative;
+            background: linear-gradient(180deg, rgba(19, 28, 52, 0.92) 0%, rgba(11, 17, 34, 0.96) 100%);
+            border-radius: 22px;
+            border: 1px solid rgba(96, 165, 250, 0.24);
+            box-shadow: 
+                0 14px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+        .client-dark-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.55);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.65),
+                0 0 24px rgba(56, 189, 248, 0.14);
+        }
+
+        /* Caixa interna de Lucro Usina */
+        .inner-profit-panel {
+            background: linear-gradient(180deg, rgba(28, 40, 72, 0.65) 0%, rgba(18, 27, 50, 0.8) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+
+        /* Botão azul "Mais Detalhes >" */
+        .btn-more-details {
+            width: 100%;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #1d4ed8 0%, #173ba6 100%);
+            border: 1px solid rgba(96, 165, 250, 0.45);
+            box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-more-details:hover {
+            background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+        .btn-more-details:active {
+            transform: scale(0.98);
+        }
+
+        /* Glass Pills do Topo */
+        .top-glass-pill {
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
         }
 
         .fade-in-up { 
@@ -109,53 +224,11 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        .admin-card { 
-            background: #ffffff; 
-            color: #0f172a; 
-            border-radius: 24px; 
-            box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.35); 
-            overflow: hidden; 
-            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-        }
-        .admin-card:hover { 
-            transform: translateY(-4px); 
-            box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.48); 
-        }
-        .admin-card:active { 
-            transform: scale(0.985); 
-        }
-
-        .card-details-btn { 
-            background: #f8fafc; 
-            color: #64748b; 
-            font-size: 11px; 
-            font-weight: 700; 
-            text-align: center; 
-            padding: 14px 16px; 
-            border-top: 1px solid #f1f5f9; 
-            transition: all 0.2s ease; 
-            text-transform: uppercase; 
-            letter-spacing: 0.8px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 6px; 
-            width: 100%; 
-            cursor: pointer; 
-        }
-        .card-details-btn:hover { 
-            background: #0f172a; 
-            color: #ffffff; 
-        }
-
+        /* Modais */
         .modal-overlay { 
             position: fixed; 
             inset: 0; 
-            background: rgba(5, 5, 15, 0.78); 
+            background: rgba(3, 6, 16, 0.82); 
             backdrop-filter: blur(14px); 
             -webkit-backdrop-filter: blur(14px); 
             z-index: 1000; 
@@ -170,20 +243,20 @@
             transform: translate(-50%, 100%);
             width: 100%; 
             max-width: 520px; 
-            background: #131626; 
+            background: linear-gradient(180deg, #131c36 0%, #0b1022 100%); 
             color: #ffffff; 
-            border-top-left-radius: 30px; 
-            border-top-right-radius: 30px; 
+            border-top-left-radius: 28px; 
+            border-top-right-radius: 28px; 
             padding: 20px 24px 38px; 
             z-index: 1001; 
-            border-top: 1px solid rgba(255,255,255,0.14); 
+            border-top: 1px solid rgba(96, 165, 250, 0.3); 
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
             max-height: 88vh; 
             overflow-y: auto; 
-            box-shadow: 0 -12px 50px rgba(0,0,0,0.85); 
+            box-shadow: 0 -14px 50px rgba(0,0,0,0.85); 
         }
         .modal-pill { 
-            width: 40px; 
+            width: 42px; 
             height: 4px; 
             background: rgba(255,255,255,0.22); 
             border-radius: 99px; 
@@ -192,74 +265,194 @@
 
         .spinner { 
             border: 3px solid rgba(255,255,255,0.12); 
-            width: 32px; 
-            height: 32px; 
+            width: 34px; 
+            height: 34px; 
             border-radius: 50%; 
-            border-left-color: #30d158; 
+            border-left-color: #39ff4d; 
             animation: spin 0.75s linear infinite; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-app-bg min-h-screen font-sans selection:bg-app-green selection:text-black">
+<body class="bg-solar-bg min-h-screen font-sans selection:bg-solar-neon selection:text-slate-950 flex flex-col justify-between">
+
+    <div class="page-ambient-bg"></div>
+    <div class="neon-slash-right"></div>
 
     <!-- TELA DE CARREGAMENTO -->
-    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#080716] flex flex-col justify-center items-center p-8 transition-opacity duration-500">
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-app-green-dark to-emerald-300 flex items-center justify-center mb-5 shadow-apple-glow animate-pulse">
-            <i class="fa-solid fa-chart-line text-xl text-slate-950"></i>
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#050814] flex flex-col justify-center items-center p-8 transition-opacity duration-500">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-solar-neon flex items-center justify-center mb-5 shadow-lg animate-pulse">
+            <i class="fa-solid fa-solar-panel text-2xl text-slate-950"></i>
         </div>
-        <h1 class="text-xl font-extrabold text-white mb-1.5 tracking-tight">SolarInvest</h1>
-        <p class="text-xs text-slate-400 mb-6 font-medium text-center">Sincronizando faturamento...</p>
+        <h1 class="text-2xl font-black text-white mb-1 tracking-tight">SOLAR<span class="text-amber-400">INVEST</span></h1>
+        <p class="text-xs text-slate-400 mb-6 font-medium text-center">Sincronizando faturamento da usina...</p>
         <div class="spinner" id="main-spinner"></div>
     </div>
 
-    <!-- CENA 3D -->
+    <!-- CENA 3D SUTIL NO FUNDO DO TOPO -->
     <div id="canvas-container"></div>
 
-    <!-- DASHBOARD -->
-    <div id="admin-dashboard" class="relative z-10 w-full min-h-screen flex flex-col pb-16">
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div id="admin-dashboard" class="relative z-10 w-full flex-1 flex flex-col">
         
-        <div class="h-[20vh] sm:h-[24vh] w-full pointer-events-none flex-shrink-0"></div>
-
-        <header class="px-5 pt-2 pb-8 text-center z-20 max-w-4xl mx-auto w-full">
-            <div class="flex items-center justify-center gap-2 mb-4">
-                <div class="inline-flex items-center gap-2 text-xs text-slate-200 font-semibold uppercase tracking-wider glass-pill px-4 py-2 rounded-full transition-transform active:scale-95 cursor-pointer">
-                    <i class="fa-solid fa-calendar-check text-app-green text-xs"></i>
-                    <span class="text-slate-300 text-[11px]">LUCRO DE:</span>
-                    <select id="month-filter" class="bg-transparent text-white font-extrabold cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
-                    </select>
-                    <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
+        <!-- BARRA SUPERIOR: LOGO SOLARINVEST + SELETOR DE MÊS -->
+        <header class="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <!-- Logotipo SolarInvest -->
+            <div class="flex items-center gap-3 select-none">
+                <svg class="w-12 h-11 flex-shrink-0 drop-shadow-[0_0_12px_rgba(251,191,36,0.45)]" viewBox="0 0 64 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Raios do Sol -->
+                    <g stroke="#FBBF24" stroke-width="2.2" stroke-linecap="round">
+                        <line x1="26" y1="4" x2="26" y2="10"/>
+                        <line x1="12" y1="9" x2="16" y2="14"/>
+                        <line x1="40" y1="9" x2="36" y2="14"/>
+                        <line x1="5" y1="21" x2="11" y2="23"/>
+                        <line x1="47" y1="21" x2="41" y2="23"/>
+                        <line x1="4" y1="33" x2="10" y2="32"/>
+                    </g>
+                    <!-- Sol Dourado -->
+                    <path d="M13 33C13 24.7157 19.268 18 27 18C34.732 18 41 24.7157 41 33H13Z" fill="url(#sunGrad)"/>
+                    <!-- Painel Solar Azul -->
+                    <path d="M18 32L47 26L56 44L23 48L18 32Z" fill="url(#panelGrad)" stroke="#93C5FD" stroke-width="1.5" stroke-linejoin="round"/>
+                    <!-- Grade do Painel -->
+                    <line x1="27.5" y1="30" x2="33.5" y2="46.5" stroke="#BAE6FD" stroke-width="1.2"/>
+                    <line x1="37.5" y1="28" x2="44.5" y2="45.2" stroke="#BAE6FD" stroke-width="1.2"/>
+                    <line x1="20.5" y1="39.5" x2="51.2" y2="34.5" stroke="#BAE6FD" stroke-width="1.2"/>
+                    <!-- Base verde -->
+                    <path d="M12 49C24 46 42 46 58 49" stroke="#39FF4D" stroke-width="2.2" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="sunGrad" x1="27" y1="18" x2="27" y2="33" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#FDE047"/>
+                            <stop offset="1" stop-color="#F59E0B"/>
+                        </linearGradient>
+                        <linearGradient id="panelGrad" x1="20" y1="26" x2="52" y2="48" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#2563EB"/>
+                            <stop offset="1" stop-color="#0F172A"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div>
+                    <div class="text-xl sm:text-2xl font-black tracking-tight leading-none">
+                        <span class="text-white">SOLAR</span><span class="text-amber-400">INVEST</span>
+                    </div>
+                    <p class="text-[9px] sm:text-[10px] font-semibold tracking-[0.22em] text-slate-300 uppercase mt-1">
+                        ENERGIA QUE GERA ECONOMIA
+                    </p>
                 </div>
-                
-                <button onclick="openConfigModal()" title="Configurar Planilha" class="glass-pill w-9 h-9 rounded-full flex items-center justify-center text-slate-300 hover:text-white transition-all active:scale-90">
-                    <i class="fa-solid fa-gear text-xs"></i>
+            </div>
+
+            <!-- Controles Superiores: Seletor de Mês + Botão Config -->
+            <div class="flex items-center gap-2.5">
+                <div class="top-glass-pill rounded-2xl px-4 py-2 flex items-center gap-3 cursor-pointer hover:border-sky-400/40 transition-colors">
+                    <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-200">
+                        <i class="fa-regular fa-calendar text-sm"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="block text-[10px] font-medium text-slate-400 leading-tight">Lucro Total do Mês</span>
+                        <div class="flex items-center gap-1.5">
+                            <select id="month-filter" class="bg-transparent text-white font-extrabold text-sm capitalize cursor-pointer focus:outline-none pr-1" onchange="filterDataByMonth()">
+                            </select>
+                            <i class="fa-solid fa-chevron-down text-slate-300 text-[10px] pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="openConfigModal()" title="Configurar Planilha" class="top-glass-pill w-11 h-11 rounded-full flex items-center justify-center text-white hover:border-sky-400/50 hover:text-solar-neon transition-all active:scale-90">
+                    <i class="fa-solid fa-chart-simple text-sm"></i>
                 </button>
             </div>
-
-            <div class="relative block my-1">
-                <h1 id="total-revenue-display" class="tabular-nums text-4xl sm:text-6xl md:text-7xl font-black text-[#30d158] tracking-tight leading-tight">
-                    R$ 0,00
-                </h1>
-            </div>
-            <p id="month-subtitle-display" class="text-xs sm:text-sm text-slate-400 font-medium tracking-wide mt-1">
-                Lucro Líquido da Usina no Período Selecionado
-            </p>
         </header>
 
-        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-1">
-            
-            <div class="flex items-center justify-between mb-4 px-1">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-users text-app-green text-xs"></i>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Clientes & Faturas</span>
+        <!-- HERO CARD DE LUCRO TOTAL -->
+        <section class="w-full max-w-3xl mx-auto px-4 sm:px-6 mt-2 mb-8">
+            <div class="hero-profit-box px-5 py-6 sm:px-9 sm:py-7 flex items-center justify-between gap-4">
+                
+                <!-- Esquerda: Orbe com Raio Verde -->
+                <div class="bolt-orb w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-bolt text-2xl sm:text-3xl text-solar-neon drop-shadow-[0_0_10px_rgba(57,255,77,0.8)]"></i>
                 </div>
-                <span id="cards-count-badge" class="tabular-nums text-[11px] font-bold bg-white/10 text-slate-200 px-3 py-0.5 rounded-full">0</span>
+
+                <!-- Centro: Título + Valor Gigante + Pílula -->
+                <div class="flex-1 text-center min-w-0">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-[0.14em] text-slate-200 mb-1">
+                        <i class="fa-solid fa-arrow-trend-up text-solar-neon"></i>
+                        <span id="hero-month-title">LUCRO TOTAL DE NOVEMBRO</span>
+                    </div>
+
+                    <div class="my-1 flex items-baseline justify-center gap-1.5 sm:gap-2">
+                        <span class="text-2xl sm:text-4xl font-extrabold text-slate-100">R$</span>
+                        <span id="total-revenue-display" class="tabular-nums text-4xl sm:text-6xl font-black text-solar-neon tracking-tight drop-shadow-[0_0_22px_rgba(57,255,77,0.35)]">
+                            0,00
+                        </span>
+                    </div>
+
+                    <div class="mt-2.5 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[11px] sm:text-xs text-slate-200 font-medium">
+                        <span class="w-4 h-4 rounded-full bg-solar-neon text-slate-950 flex items-center justify-center text-[9px] font-black">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                        <span id="month-subtitle-display">Lucro Líquido da Usina em Novembro</span>
+                    </div>
+                </div>
+
+                <!-- Direita: Gráfico de Barras Crescentes SVG -->
+                <div class="hidden sm:flex items-center justify-center flex-shrink-0 w-24 h-20">
+                    <svg viewBox="0 0 110 80" class="w-full h-full drop-shadow-[0_0_12px_rgba(57,255,77,0.45)]" fill="none">
+                        <defs>
+                            <linearGradient id="barGreen" x1="0" y1="80" x2="0" y2="10" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#059669" stop-opacity="0.25"/>
+                                <stop offset="1" stop-color="#39FF4D"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="8" y="54" width="12" height="20" rx="2" fill="url(#barGreen)"/>
+                        <rect x="26" y="45" width="12" height="29" rx="2" fill="url(#barGreen)"/>
+                        <rect x="44" y="36" width="12" height="38" rx="2" fill="url(#barGreen)"/>
+                        <rect x="62" y="26" width="12" height="48" rx="2" fill="url(#barGreen)"/>
+                        <rect x="80" y="16" width="12" height="58" rx="2" fill="url(#barGreen)"/>
+                        <!-- Seta ascendente -->
+                        <path d="M10 48C34 42 62 28 94 8" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M84 7H96V19" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- BARRA CLIENTES & FATURAS + BUSCA -->
+        <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-users text-sky-400 text-lg drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]"></i>
+                    <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">Clientes & Faturas</h2>
+                    <span id="cards-count-badge" class="tabular-nums text-[11px] font-bold bg-white/10 text-slate-300 px-2.5 py-0.5 rounded-full border border-white/10">0</span>
+                </div>
+
+                <!-- Campo de Busca -->
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input 
+                        type="text" 
+                        id="search-client-input" 
+                        oninput="renderDashboard()" 
+                        placeholder="Buscar cliente..." 
+                        class="w-full bg-white/[0.06] border border-white/15 rounded-full pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-400/60 transition-colors"
+                    >
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="cards-container">
+            <!-- GRADE DE CARDS DOS CLIENTES -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="cards-container">
             </div>
         </main>
     </div>
+
+    <!-- RODAPÉ -->
+    <footer class="relative z-10 w-full mt-auto">
+        <div class="bottom-neon-line"></div>
+        <div class="py-4 px-4 text-center flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] text-slate-300 uppercase">
+            <i class="fa-solid fa-leaf text-solar-neon text-xs"></i>
+            <span>SOLARINVEST <span class="mx-1.5 text-slate-500">•</span> MAIS ECONOMIA <span class="mx-1.5 text-slate-500">•</span> UM FUTURO SUSTENTÁVEL</span>
+        </div>
+    </footer>
 
     <!-- MODAL DE DETALHES -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
@@ -270,7 +463,7 @@
             <div class="pr-2">
                 <h3 id="modal-cliente-nome" class="text-2xl font-extrabold capitalize leading-tight tracking-tight text-white break-words">Cliente</h3>
                 <p id="modal-mes-sub" class="text-xs text-slate-400 font-medium mt-1">Fatura do Mês</p>
-                <p id="modal-vencimento-text" class="text-xs font-semibold text-indigo-300 mt-1.5 flex items-center gap-1.5">
+                <p id="modal-vencimento-text" class="text-xs font-semibold text-sky-300 mt-1.5 flex items-center gap-1.5">
                     <i class="fa-regular fa-calendar text-[11px]"></i>
                     <span>Vencimento: --</span>
                 </p>
@@ -334,9 +527,9 @@
             </div>
         </div>
 
-        <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
+        <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center">
             <h4 id="modal-profit-label" class="text-[11px] text-emerald-400 font-bold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
-            <h2 id="modal-valor-final" class="tabular-nums text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
+            <h2 id="modal-valor-final" class="tabular-nums text-4xl font-black text-solar-neon tracking-tight">R$ 0,00</h2>
         </div>
     </div>
 
@@ -355,7 +548,7 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1.5">Link ou ID da Planilha</label>
-                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-app-green">
+                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-solar-neon">
             </div>
             
             <div class="flex gap-2">
@@ -380,6 +573,18 @@
         ];
 
         const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status', 'vencimento', 'dia'];
+
+        // Paleta vibrante para os avatares circulares (como na imagem)
+        const AVATAR_COLORS = [
+            'bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.5)]',
+            'bg-violet-600 text-white shadow-[0_0_12px_rgba(124,58,237,0.5)]',
+            'bg-teal-600 text-white shadow-[0_0_12px_rgba(13,148,136,0.5)]',
+            'bg-amber-500 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)]',
+            'bg-emerald-600 text-white shadow-[0_0_12px_rgba(5,150,105,0.5)]',
+            'bg-purple-600 text-white shadow-[0_0_12px_rgba(147,51,234,0.5)]',
+            'bg-green-600 text-white shadow-[0_0_12px_rgba(22,163,74,0.5)]',
+            'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.5)]'
+        ];
 
         let globalAllInvoices = [];
         let globalAllClients = [];
@@ -487,7 +692,7 @@
 
         /**
          * Calcula a data de vencimento da fatura:
-         * - Se o dia for entre 01 e 05, joga para o MÊS SEGUINTE ao da fatura (ex: Novembro dia 01 -> 01/12).
+         * - Se o dia for entre 01 e 05, joga automaticamente para o MÊS SEGUINTE ao da fatura (ex: Novembro dia 01 -> 01/12).
          * - Se for dia 06 ou maior, permanece no próprio mês da fatura (ex: Novembro dia 10 -> 10/11).
          */
         function buildDueDateInfo(dueDay, mesStr, isPaid, hasData) {
@@ -507,8 +712,8 @@
                 return {
                     shortLabel: `Vencimento: Dia ${dayPadded}`,
                     fullLabel: `Vencimento: Todo dia ${dayPadded}`,
-                    textClass: 'text-slate-500',
-                    modalClass: 'text-indigo-300'
+                    textClass: 'text-slate-300',
+                    modalClass: 'text-sky-300'
                 };
             }
 
@@ -537,7 +742,7 @@
                 return {
                     shortLabel: `Vencimento: ${formattedDate}`,
                     fullLabel: `Vencimento: ${formattedDate}`,
-                    textClass: isPaid ? 'text-emerald-600' : 'text-slate-400',
+                    textClass: isPaid ? 'text-emerald-400' : 'text-slate-400',
                     modalClass: isPaid ? 'text-emerald-400' : 'text-slate-300'
                 };
             }
@@ -551,22 +756,22 @@
                 return {
                     shortLabel: `Vencimento: ${formattedDate} (Atrasada)`,
                     fullLabel: `Vencida em ${formattedDate}`,
-                    textClass: 'text-red-500',
+                    textClass: 'text-red-400',
                     modalClass: 'text-red-400'
                 };
             } else if (diffDays === 0) {
                 return {
                     shortLabel: `Vencimento: ${formattedDate} (Hoje)`,
                     fullLabel: `Vence hoje (${formattedDate})`,
-                    textClass: 'text-amber-600',
+                    textClass: 'text-amber-300',
                     modalClass: 'text-amber-400'
                 };
             } else {
                 return {
                     shortLabel: `Vencimento: ${formattedDate}`,
                     fullLabel: `Vencimento: ${formattedDate}`,
-                    textClass: 'text-slate-600',
-                    modalClass: 'text-indigo-300'
+                    textClass: 'text-sky-300',
+                    modalClass: 'text-sky-300'
                 };
             }
         }
@@ -601,8 +806,8 @@
         function showConfigScreen(msg) {
             const loadingScreen = document.getElementById('loading-screen');
             loadingScreen.innerHTML = `
-                <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                <div class="text-center p-6 bg-[#111933] border border-sky-400/25 rounded-3xl max-w-sm mx-auto shadow-2xl">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-solar-neon flex items-center justify-center mx-auto mb-4">
                         <i class="fa-solid fa-table text-xl"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">Configuração Inicial</h3>
@@ -634,10 +839,8 @@
                         const clientKey = clientName.toLowerCase();
                         if (HEADER_WORDS.includes(clientKey)) return;
 
-                        // Coluna B: CIP
                         cipMap[clientKey] = safeParseFloat(r[1]);
                         
-                        // Coluna C: Dia de vencimento
                         const dueDay = parseDueDay(r[2]);
                         if (dueDay !== null) {
                             globalVencimentoMap[clientKey] = dueDay;
@@ -742,9 +945,10 @@
                 monthSelect.innerHTML = '';
                 
                 monthsArray.forEach(m => {
-                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#080716] text-white">${m.toUpperCase()}</option>`;
+                    const capMonth = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#0b1022] text-white">${capMonth}</option>`;
                 });
-                monthSelect.innerHTML += `<option value="TODOS" class="bg-[#080716] text-white">TODOS OS MESES</option>`;
+                monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0b1022] text-white">Todos os Meses</option>`;
 
                 const now = new Date();
                 const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
@@ -777,12 +981,15 @@
             currentFilteredCards = [];
 
             if (selectedMonth === 'TODOS') {
-                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Total Acumulado (Todos os Meses)';
+                document.getElementById('hero-month-title').innerText = 'LUCRO TOTAL ACUMULADO';
+                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido de Todos os Meses';
                 globalAllInvoices.forEach(inv => {
                     currentFilteredCards.push({ hasData: true, ...inv });
                 });
             } else {
-                document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${selectedMonth}`;
+                const capMonth = selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1).toLowerCase();
+                document.getElementById('hero-month-title').innerText = `LUCRO TOTAL DE ${selectedMonth.toUpperCase()}`;
+                document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${capMonth}`;
                 
                 globalAllClients.forEach(clientName => {
                     const clientKey = clientName.toLowerCase();
@@ -827,6 +1034,7 @@
 
         function renderDashboard() {
             const container = document.getElementById('cards-container');
+            const searchQuery = (document.getElementById('search-client-input')?.value || '').trim().toLowerCase();
             container.innerHTML = '';
 
             let totalLucroMes = 0;
@@ -834,74 +1042,128 @@
                 if(c.hasData) totalLucroMes += c.lucroLiquidoNum;
             });
 
-            document.getElementById('total-revenue-display').innerText = totalLucroMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('cards-count-badge').innerText = currentFilteredCards.length;
+            // Formata apenas os dígitos sem repetir "R$" porque o "R$" já está estilizado em branco ao lado
+            const formattedValueOnly = totalLucroMes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('total-revenue-display').innerText = formattedValueOnly;
 
-            if(currentFilteredCards.length === 0) {
+            const visibleCards = currentFilteredCards
+                .map((item, originalIndex) => ({ item, originalIndex }))
+                .filter(({ item }) => !searchQuery || item.cliente.toLowerCase().includes(searchQuery));
+
+            document.getElementById('cards-count-badge').innerText = visibleCards.length;
+
+            if(visibleCards.length === 0) {
                 container.innerHTML = `
-                    <div class="col-span-full p-10 text-center glass-card rounded-3xl my-4">
+                    <div class="col-span-full p-10 text-center bg-white/[0.04] border border-white/10 rounded-3xl my-2">
                         <i class="fa-solid fa-folder-open text-2xl text-slate-500 mb-3"></i>
-                        <p class="text-sm text-slate-300 font-medium">Nenhum registro encontrado para este período.</p>
+                        <p class="text-sm text-slate-300 font-medium">Nenhum cliente ou fatura encontrado.</p>
                     </div>
                 `;
                 return;
             }
 
-            currentFilteredCards.forEach((item, index) => {
-                let statusBadge = '';
-                let subtextHtml = '';
-                let profitHtml = '';
+            visibleCards.forEach(({ item, originalIndex }, idx) => {
+                const initialLetter = (item.cliente.trim()[0] || 'C').toUpperCase();
+                const avatarStyle = AVATAR_COLORS[originalIndex % AVATAR_COLORS.length];
+
+                let statusPillHtml = '';
+                let secondLineHtml = '';
+                let profitValueHtml = '';
 
                 if (item.hasData) {
                     const isPaid = item.status === 'pago';
-                    statusBadge = isPaid 
-                        ? `<span class="bg-[#30d158] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">RECEBIDO</span>` 
-                        : `<span class="bg-amber-500/15 text-amber-700 border border-amber-500/30 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">PENDENTE</span>`;
+                    if (isPaid) {
+                        statusPillHtml = `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/40">
+                                <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center text-[8px] font-black">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                                Recebido
+                            </span>
+                        `;
+                    } else {
+                        statusPillHtml = `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/40">
+                                <i class="fa-regular fa-clock text-[10px] text-amber-400"></i>
+                                Pendente
+                            </span>
+                        `;
+                    }
 
-                    subtextHtml = `
-                        <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
-                        Mês: ${item.mes} • Faturamento: <span class="tabular-nums">${item.faturamentoStr}</span>
+                    secondLineHtml = `
+                        <i class="fa-solid fa-bolt text-amber-400 text-xs w-3.5 text-center"></i>
+                        <span>Faturamento: <strong class="tabular-nums text-white font-semibold">${item.faturamentoStr}</strong></span>
                     `;
 
-                    profitHtml = `<span class="tabular-nums text-2xl font-black text-[#30d158] tracking-tight leading-none">${item.lucroStr}</span>`;
+                    profitValueHtml = `<div class="tabular-nums text-xl sm:text-2xl font-black text-solar-neon tracking-tight leading-tight">${item.lucroStr}</div>`;
                 } else {
-                    statusBadge = `<span class="bg-slate-100 text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">SEM DADOS</span>`;
-
-                    subtextHtml = `
-                        <i class="fa-solid fa-circle-minus text-slate-300 text-[11px] mr-1"></i>
-                        Mês: ${item.mes} • Consumo: -- kWh
+                    statusPillHtml = `
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-300 border border-sky-400/35">
+                            <i class="fa-solid fa-check text-[9px] text-sky-400"></i>
+                            Sem Dados
+                        </span>
                     `;
 
-                    profitHtml = `<span class="tabular-nums text-xl font-bold text-slate-300 tracking-tight leading-none">--</span>`;
+                    secondLineHtml = `
+                        <i class="fa-solid fa-bolt text-amber-400 text-xs w-3.5 text-center"></i>
+                        <span>Consumo: <span class="text-slate-400">-- kWh</span></span>
+                    `;
+
+                    profitValueHtml = `<div class="tabular-nums text-xl font-black text-solar-neon/80 tracking-tight leading-tight">--</div>`;
                 }
 
+                const capMes = item.mes.charAt(0).toUpperCase() + item.mes.slice(1).toLowerCase();
+
                 container.innerHTML += `
-                    <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.03}s">
-                        <div class="p-5 flex-1 flex flex-col justify-between gap-4">
-                            <div>
-                                <div class="flex justify-between items-start gap-2 mb-2.5">
-                                    <h2 class="font-extrabold text-slate-900 text-base leading-snug capitalize tracking-tight break-words pr-1">${item.cliente}</h2>
-                                    ${statusBadge}
+                    <div class="client-dark-card p-4 fade-in-up" style="animation-delay: ${idx * 0.03}s">
+                        <div>
+                            <!-- Topo: Avatar + Pílula de Status -->
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="w-9 h-9 rounded-full ${avatarStyle} flex items-center justify-center font-extrabold text-sm flex-shrink-0">
+                                    ${initialLetter}
                                 </div>
-                                <p class="text-xs text-slate-500 font-medium">
-                                    ${subtextHtml}
-                                </p>
-                                <p class="text-[11px] font-semibold mt-1.5 flex items-center gap-1.5 ${item.dueInfo.textClass}">
-                                    <i class="fa-regular fa-calendar text-[10px]"></i>
-                                    <span>${item.dueInfo.shortLabel}</span>
-                                </p>
+                                ${statusPillHtml}
                             </div>
 
-                            <div class="pt-3.5 border-t border-slate-100 flex justify-between items-baseline gap-2">
-                                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">LUCRO USINA</span>
-                                ${profitHtml}
+                            <!-- Nome do Cliente -->
+                            <h3 class="text-lg font-extrabold text-white capitalize tracking-tight truncate mb-2" title="${item.cliente}">
+                                ${item.cliente}
+                            </h3>
+
+                            <!-- Detalhes de Mês, Faturamento/Consumo e Vencimento -->
+                            <div class="space-y-1 text-xs text-slate-300 mb-3.5">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-regular fa-calendar text-slate-400 text-xs w-3.5 text-center"></i>
+                                    <span>Mês: <strong class="text-slate-100 font-semibold">${capMes}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${secondLineHtml}
+                                </div>
+                                <div class="flex items-center gap-2 ${item.dueInfo.textClass} font-semibold">
+                                    <i class="fa-regular fa-bell text-xs w-3.5 text-center"></i>
+                                    <span>${item.dueInfo.shortLabel}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <button onclick="openModal(${index})" class="card-details-btn">
-                            <span>Mais detalhes</span>
-                            <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                        </button>
+                        <div>
+                            <!-- Caixa Interna: Ícone Painel + Lucro Usina -->
+                            <div class="inner-profit-panel flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-solar-panel text-sky-400 text-base"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="block text-[11px] font-medium text-slate-300 leading-tight">Lucro Usina</span>
+                                    ${profitValueHtml}
+                                </div>
+                            </div>
+
+                            <!-- Botão Mais Detalhes -->
+                            <button onclick="openModal(${originalIndex})" class="btn-more-details">
+                                <span>Mais Detalhes</span>
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -924,8 +1186,8 @@
 
             if (card.hasData) {
                 const isPaid = card.status === 'pago';
-                badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
-                badge.className = `text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
+                badge.innerText = isPaid ? 'RECEBIDO' : 'PENDENTE';
+                badge.className = `text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`;
 
                 contentBody.style.display = 'block';
                 
@@ -940,13 +1202,13 @@
                 document.getElementById('modal-cip-usina').innerText = card.cipStr;
                 document.getElementById('modal-custo-total').innerText = card.custoTotalUsinaStr;
 
-                profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
+                profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-400/40 rounded-2xl p-5 text-center";
                 profitLabel.innerText = "Seu Lucro Líquido Final";
-                document.getElementById('modal-valor-final').className = "tabular-nums text-4xl font-black text-app-green tracking-tight";
+                document.getElementById('modal-valor-final').className = "tabular-nums text-4xl font-black text-solar-neon tracking-tight";
                 document.getElementById('modal-valor-final').innerText = card.lucroStr;
             } else {
-                badge.innerText = 'SEM LANÇAMENTO';
-                badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-white/10 text-slate-400';
+                badge.innerText = 'SEM DADOS';
+                badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-sky-500/15 text-sky-300 border border-sky-400/30';
 
                 contentBody.style.display = 'none';
 
