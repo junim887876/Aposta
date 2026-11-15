@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SolarInvest</title>
+    <title>Solar Invest</title>
 
     <!-- Configurações PWA -->
     <meta name="theme-color" content="#050814">
@@ -114,6 +114,35 @@
         .top-glass-pill {
             background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(148, 163, 184, 0.22);
+        }
+
+        /* Estilos LED Status Servidor */
+        .server-pill-online {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(57, 255, 77, 0.45);
+            box-shadow: 0 0 16px rgba(57, 255, 77, 0.15);
+        }
+        .server-pill-offline {
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(248, 113, 113, 0.55);
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.22);
+        }
+        .server-pill-checking {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+
+        .led-glow-green {
+            background-color: #39ff4d;
+            box-shadow: 0 0 8px #39ff4d, 0 0 16px #22c55e;
+        }
+        .led-glow-red {
+            background-color: #ef4444;
+            box-shadow: 0 0 8px #ef4444, 0 0 16px #dc2626;
+        }
+        .led-glow-amber {
+            background-color: #fbbf24;
+            box-shadow: 0 0 8px #fbbf24;
         }
 
         .modal-overlay { 
@@ -229,8 +258,26 @@
                 </div>
             </div>
 
-            <!-- Controles Superiores -->
-            <div class="flex items-center gap-2.5">
+            <!-- Controles Superiores (Status LED + Mês + Configurações) -->
+            <div class="flex flex-wrap items-center justify-center gap-2.5">
+                
+                <!-- INDICADOR LED DO SERVIDOR DJANGO -->
+                <button onclick="openServerModal()" id="server-status-pill" title="Clique para ver detalhes do servidor" class="server-pill-checking rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer">
+                    <span class="relative flex h-3 w-3 flex-shrink-0">
+                        <span id="server-led-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span id="server-led-dot" class="relative inline-flex rounded-full h-3 w-3 led-glow-amber"></span>
+                    </span>
+                    <div class="text-left">
+                        <span id="server-status-label" class="block text-[11px] font-extrabold tracking-wider uppercase text-amber-300 leading-none">
+                            VERIFICANDO...
+                        </span>
+                        <span id="server-status-sub" class="block text-[9px] font-medium text-slate-300 leading-tight mt-0.5">
+                            Servidor PC
+                        </span>
+                    </div>
+                </button>
+
+                <!-- Seletor de Mês -->
                 <div class="top-glass-pill rounded-2xl px-4 py-2 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-200">
                         <i class="fa-regular fa-calendar text-sm"></i>
@@ -245,7 +292,8 @@
                     </div>
                 </div>
 
-                <button onclick="openConfigModal()" title="Configurar Planilha e PIX" class="top-glass-pill w-11 h-11 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
+                <!-- Botão Configurações -->
+                <button onclick="openConfigModal()" title="Configurar Planilha, PIX e Monitoramento" class="top-glass-pill w-11 h-11 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
                     <i class="fa-solid fa-gear text-sm"></i>
                 </button>
             </div>
@@ -335,7 +383,58 @@
         </div>
     </footer>
 
-    <!-- MODAL DE DETALHES -->
+    <!-- MODAL DE STATUS DETALHADO DO SERVIDOR PC -->
+    <div class="modal-overlay" id="server-overlay" onclick="closeServerModal()"></div>
+    <div class="bottom-sheet" id="server-sheet">
+        <div class="modal-pill"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-2.5">
+                <span class="relative flex h-3.5 w-3.5">
+                    <span id="modal-server-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span id="modal-server-dot" class="relative inline-flex rounded-full h-3.5 w-3.5 led-glow-amber"></span>
+                </span>
+                <h3 class="text-xl font-extrabold text-white">Servidor Django & Robô</h3>
+            </div>
+            <button onclick="closeServerModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div id="modal-server-banner" class="rounded-2xl p-4 mb-4 border border-white/10 bg-white/[0.04] text-center">
+            <span id="modal-server-big-status" class="text-lg font-black tracking-wide uppercase text-amber-300">VERIFICANDO CONEXÃO...</span>
+            <p id="modal-server-desc" class="text-xs text-slate-300 mt-1">Consultando último sinal enviado pelo computador...</p>
+        </div>
+
+        <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-4 space-y-2.5 text-xs mb-4">
+            <div class="flex justify-between items-center text-slate-300">
+                <span>Último Sinal (PC Local):</span>
+                <span id="srv-last-seen" class="tabular-nums font-bold text-white">--</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300">
+                <span>Tempo Decorrido:</span>
+                <span id="srv-elapsed" class="tabular-nums font-bold text-sky-300">--</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300">
+                <span>Atividade do Robô:</span>
+                <span id="srv-robo-activity" class="font-bold text-white">--</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300">
+                <span>Faturas Pendentes no Mês:</span>
+                <span id="srv-ucs-pending" class="tabular-nums font-bold text-amber-300">--</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300 border-t border-white/10 pt-2">
+                <span>Ciclo de Verificação:</span>
+                <span class="font-semibold text-slate-200">A cada 2 horas (margem 2h15m)</span>
+            </div>
+        </div>
+
+        <button onclick="checkServerHealth(true)" class="w-full py-3.5 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Atualizar Status Agora</span>
+        </button>
+    </div>
+
+    <!-- MODAL DE DETALHES DA FATURA -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
     <div class="bottom-sheet" id="bottom-sheet">
         <div class="modal-pill"></div>
@@ -426,7 +525,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA E PIX -->
+    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA, PIX E MONITOR -->
     <div class="modal-overlay" id="config-overlay" onclick="closeConfigModal()"></div>
     <div class="bottom-sheet" id="config-sheet">
         <div class="modal-pill"></div>
@@ -441,6 +540,16 @@
             <div>
                 <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1.5">Link ou ID da Planilha Google Sheets</label>
                 <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-solar-neon">
+            </div>
+
+            <div class="border-t border-white/10 pt-3">
+                <span class="block text-xs font-extrabold text-sky-400 uppercase tracking-wider mb-2">
+                    <i class="fa-solid fa-server mr-1"></i> Monitoramento do Servidor (GitHub)
+                </span>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1">Repositório (usuario/repositorio)</label>
+                    <input type="text" id="input-github-repo" placeholder="Ex: junim887876/Energia" class="w-full bg-white/5 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-sky-400">
+                </div>
             </div>
 
             <div class="border-t border-white/10 pt-3">
@@ -475,6 +584,13 @@
     </div>
 
     <script>
+        /* =====================================================================
+           CONFIGURAÇÕES DO MONITORAMENTO DO SERVIDOR DJANGO (GITHUB)
+           ===================================================================== */
+        const DEFAULT_GITHUB_REPO = 'junim887876/Aposta'; // <-- SEU USUÁRIO/REPOSITÓRIO DO STATUS.JSON
+        const STORAGE_GITHUB_REPO = 'solarinvest_github_monitor_repo';
+        const SERVER_TOLERANCE_MINUTES = 15; // 2 horas (120 min) + 15 min de margem
+
         /* =====================================================================
            CÓDIGO PIX OFICIAL (JÁ EMBUTIDO E VALIDADO COM O SEU QR CODE)
            ===================================================================== */
@@ -513,6 +629,10 @@
         let currentFilteredCards = [];
 
         window.onload = () => {
+            // Inicia a verificação do servidor imediatamente e a cada 60 segundos
+            checkServerHealth(false);
+            setInterval(() => checkServerHealth(false), 60000);
+
             const savedId = getStoredSheetId();
             if (!savedId) {
                 showConfigScreen('Por favor, adicione o ID ou Link da sua planilha para carregar os dados.');
@@ -521,6 +641,141 @@
             }
         };
 
+        /* =====================================================================
+           FUNÇÕES DE MONITORAMENTO DO SERVIDOR (LED VERDE / VERMELHO)
+           ===================================================================== */
+        function getMonitorRepo() {
+            return (localStorage.getItem(STORAGE_GITHUB_REPO) || DEFAULT_GITHUB_REPO).trim();
+        }
+
+        async function checkServerHealth(manualClick = false) {
+            const repo = getMonitorRepo();
+            const jsonUrl = `https://raw.githubusercontent.com/${repo}/main/status.json?t=${Date.now()}`;
+
+            const pill = document.getElementById('server-status-pill');
+            const ledPing = document.getElementById('server-led-ping');
+            const ledDot = document.getElementById('server-led-dot');
+            const statusLabel = document.getElementById('server-status-label');
+            const statusSub = document.getElementById('server-status-sub');
+
+            // Elementos do modal
+            const modalPing = document.getElementById('modal-server-ping');
+            const modalDot = document.getElementById('modal-server-dot');
+            const modalBanner = document.getElementById('modal-server-banner');
+            const modalBigStatus = document.getElementById('modal-server-big-status');
+            const modalDesc = document.getElementById('modal-server-desc');
+
+            if (manualClick) {
+                showToast('Verificando sinal do servidor...');
+            }
+
+            try {
+                const response = await fetch(jsonUrl, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Arquivo status.json ainda não criado');
+
+                const data = await response.json();
+                const lastSignal = new Date(data.timestamp);
+                const now = new Date();
+                const diffMinutes = Math.max(0, Math.floor((now - lastSignal) / 1000 / 60));
+
+                const isOnline = (diffMinutes <= SERVER_TOLERANCE_MINUTES) && (data.django_ok === true);
+
+                // Formata tempo decorrido amigável
+                let elapsedText = '';
+                if (diffMinutes < 1) {
+                    elapsedText = 'Agora mesmo';
+                } else if (diffMinutes < 60) {
+                    elapsedText = `há ${diffMinutes} min`;
+                } else {
+                    const hrs = Math.floor(diffMinutes / 60);
+                    const mins = diffMinutes % 60;
+                    elapsedText = `há ${hrs}h ${mins}m`;
+                }
+
+                // Preenche dados detalhados no modal
+                document.getElementById('srv-last-seen').innerText = data.hora_local_pc || lastSignal.toLocaleString('pt-BR');
+                document.getElementById('srv-elapsed').innerText = `${diffMinutes} minutos (${elapsedText})`;
+                document.getElementById('srv-robo-activity').innerText = data.status_robo || 'Operando';
+                document.getElementById('srv-ucs-pending').innerText = data.ucs_pendentes !== undefined ? `${data.ucs_pendentes} de 8 UCs` : '--';
+
+                if (isOnline) {
+                    // ESTADO ONLINE (VERDE NEON BRILHANDO)
+                    pill.className = 'server-pill-online rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer';
+                    ledPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80';
+                    ledDot.className = 'relative inline-flex rounded-full h-3 w-3 led-glow-green';
+                    statusLabel.className = 'block text-[11px] font-extrabold tracking-wider uppercase text-solar-neon leading-none';
+                    statusLabel.innerText = 'SERVIDOR ONLINE';
+                    statusSub.innerText = `Sinal ${elapsedText}`;
+
+                    modalPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80';
+                    modalDot.className = 'relative inline-flex rounded-full h-3.5 w-3.5 led-glow-green';
+                    modalBanner.className = 'rounded-2xl p-4 mb-4 border border-emerald-500/40 bg-emerald-500/10 text-center';
+                    modalBigStatus.className = 'text-lg font-black tracking-wide uppercase text-solar-neon';
+                    modalBigStatus.innerText = '● SERVIDOR ONLINE E ATIVO';
+                    modalDesc.innerText = 'O computador local e o robô de faturas estão operando normalmente.';
+                } else {
+                    // ESTADO OFFLINE (VERMELHO PULSANDO)
+                    pill.className = 'server-pill-offline rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer';
+                    ledPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85';
+                    ledDot.className = 'relative inline-flex rounded-full h-3 w-3 led-glow-red';
+                    statusLabel.className = 'block text-[11px] font-extrabold tracking-wider uppercase text-red-400 leading-none';
+                    statusLabel.innerText = 'SERVIDOR OFFLINE';
+                    statusSub.innerText = `Sem sinal (${elapsedText})`;
+
+                    modalPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85';
+                    modalDot.className = 'relative inline-flex rounded-full h-3.5 w-3.5 led-glow-red';
+                    modalBanner.className = 'rounded-2xl p-4 mb-4 border border-red-500/45 bg-red-500/15 text-center';
+                    modalBigStatus.className = 'text-lg font-black tracking-wide uppercase text-red-400';
+                    modalBigStatus.innerText = '● SERVIDOR OFFLINE / SEM SINAL';
+                    modalDesc.innerText = 'O servidor ultrapassou o limite de 2h15m sem enviar sinal. Verifique o PC ou a internet.';
+                }
+
+                if (manualClick) showToast('Status atualizado!');
+
+            } catch (err) {
+                // ERRO OU SEM ARQUIVO NO GITHUB (VERMELHO)
+                pill.className = 'server-pill-offline rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer';
+                ledPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85';
+                ledDot.className = 'relative inline-flex rounded-full h-3 w-3 led-glow-red';
+                statusLabel.className = 'block text-[11px] font-extrabold tracking-wider uppercase text-red-400 leading-none';
+                statusLabel.innerText = 'SERVIDOR OFFLINE';
+                statusSub.innerText = 'Sem sinal recebido';
+
+                modalPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85';
+                modalDot.className = 'relative inline-flex rounded-full h-3.5 w-3.5 led-glow-red';
+                modalBanner.className = 'rounded-2xl p-4 mb-4 border border-red-500/45 bg-red-500/15 text-center';
+                modalBigStatus.className = 'text-lg font-black tracking-wide uppercase text-red-400';
+                modalBigStatus.innerText = '● AGUARDANDO PRIMEIRO SINAL';
+                modalDesc.innerText = `Nenhum arquivo status.json encontrado em ${repo}. Verifique se o robô já rodou no PC.`;
+
+                document.getElementById('srv-last-seen').innerText = 'Nunca recebido';
+                document.getElementById('srv-elapsed').innerText = '--';
+                document.getElementById('srv-robo-activity').innerText = 'Sem dados';
+                document.getElementById('srv-ucs-pending').innerText = '--';
+            }
+        }
+
+        function openServerModal() {
+            const overlay = document.getElementById('server-overlay');
+            const sheet = document.getElementById('server-sheet');
+            overlay.style.display = 'block';
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            });
+        }
+
+        function closeServerModal() {
+            const overlay = document.getElementById('server-overlay');
+            const sheet = document.getElementById('server-sheet');
+            sheet.style.transform = 'translate(-50%, 100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+
+        /* =====================================================================
+           FUNÇÕES ORIGINAIS DO SISTEMA SOLARINVEST
+           ===================================================================== */
         function showToast(msg) {
             const toast = document.getElementById('toast-notification');
             document.getElementById('toast-text').innerText = msg;
@@ -548,6 +803,11 @@
                 alert('Por favor, insira um ID ou Link válido da planilha.');
                 return;
             }
+            const repoVal = document.getElementById('input-github-repo').value.trim();
+            if (repoVal) {
+                localStorage.setItem(STORAGE_GITHUB_REPO, repoVal);
+            }
+
             localStorage.setItem(STORAGE_KEY, extracted);
             localStorage.setItem(STORAGE_PIX_CODE, document.getElementById('input-pix-code').value.trim() || DEFAULT_PIX_CODE);
             localStorage.setItem(STORAGE_PIX_MODE, document.getElementById('input-pix-mode').value || 'official_exact');
@@ -565,6 +825,7 @@
 
         function openConfigModal() {
             document.getElementById('input-sheet-id').value = getStoredSheetId();
+            document.getElementById('input-github-repo').value = getMonitorRepo();
             document.getElementById('input-pix-code').value = localStorage.getItem(STORAGE_PIX_CODE) || DEFAULT_PIX_CODE;
             document.getElementById('input-pix-mode').value = localStorage.getItem(STORAGE_PIX_MODE) || 'official_exact';
 
@@ -1259,12 +1520,10 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             const basePix = (localStorage.getItem(STORAGE_PIX_CODE) || DEFAULT_PIX_CODE).trim();
             const pixMode = localStorage.getItem(STORAGE_PIX_MODE) || 'official_exact';
 
-            // Modo padrão: retorna exatamente o código PIX oficial fornecido (gera a matriz exata do seu QR Code)
             if (pixMode === 'official_exact' || !amount || amount <= 0) {
                 return basePix;
             }
 
-            // Modo opcional: injeta o valor (tag 54) no seu código PIX oficial e recalcula o CRC16
             try {
                 let idx = 0;
                 const tags = [];
@@ -1328,7 +1587,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             canvas.height = H;
             const ctx = canvas.getContext('2d');
 
-            // 1. FUNDO CLARO COM CÉU AZUL SUAVE
             const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
             bgGrad.addColorStop(0, '#bfe0fb');
             bgGrad.addColorStop(0.20, '#eef6fd');
@@ -1337,7 +1595,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, W, H);
 
-            // Brilho solar
             const sunHalo = ctx.createRadialGradient(690, 55, 10, 690, 55, 220);
             sunHalo.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
             sunHalo.addColorStop(0.35, 'rgba(254, 240, 138, 0.55)');
@@ -1345,7 +1602,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.fillStyle = sunHalo;
             ctx.fillRect(420, 0, 380, 260);
 
-            // Painel solar decorativo no topo direito
             ctx.save();
             ctx.globalAlpha = 0.85;
             ctx.beginPath();
@@ -1379,7 +1635,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             }
             ctx.restore();
 
-            // 2. LOGOTIPO SOLARINVEST
             const logoCx = 100, logoCy = 98, logoR = 62;
             ctx.save();
             ctx.beginPath();
@@ -1439,7 +1694,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.fillStyle = '#f59e0b';
             ctx.fill();
 
-            // 3. CARD 1: CLIENTE E CONSUMO
             const card1Y = 195, card1H = 98;
             roundRectPath(ctx, 28, card1Y, 744, card1H, 22);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
@@ -1501,7 +1755,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.font = '800 28px Inter, sans-serif';
             ctx.fillText(`${card.consumo} kWh`, 585, card1Y + 73);
 
-            // 4. CARD 2: DETALHES DO CONSUMO
             const card2Y = 312, card2H = 225;
             roundRectPath(ctx, 28, card2Y, 744, card2H, 24);
             ctx.fillStyle = '#f8fbff';
@@ -1559,7 +1812,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.font = '800 29px Inter, sans-serif';
             ctx.fillText(card.valorBruto, 744, card2Y + 204);
 
-            // 5. CARD 3: DESCONTO DE 20% + VALOR LÍQUIDO
             const card3Y = 556, card3H = 238;
             roundRectPath(ctx, 28, card3Y, 744, card3H, 26);
             const goldGrad = ctx.createLinearGradient(28, card3Y, 772, card3Y + 100);
@@ -1658,7 +1910,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.fillStyle = '#f59e0b';
             ctx.fill();
 
-            // 6. CARD 4: ÁREA PIX + QR CODE (100% LIMPA, SEM TEXTOS VAZANDO)
             const card4Y = 812, card4H = 222;
             roundRectPath(ctx, 28, card4Y, 744, card4H, 26);
             ctx.fillStyle = '#e8f1fa';
@@ -1667,7 +1918,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Losangos do logotipo PIX
             const px = 128, py = card4Y + 94;
             ctx.fillStyle = '#14b8a6';
             function drawPixDiamond(cx, cy, size) {
@@ -1683,7 +1933,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             drawPixDiamond(px - 24, py, 22);
             drawPixDiamond(px + 24, py, 22);
 
-            // Letras "pix"
             ctx.strokeStyle = '#0f2942';
             ctx.lineWidth = 4.5;
             ctx.lineCap = 'round';
@@ -1710,13 +1959,11 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.lineTo(266, card4Y + 112);
             ctx.stroke();
 
-            // Texto limpo "Pague com PIX"
             ctx.textAlign = 'center';
             ctx.fillStyle = '#0f2942';
             ctx.font = '700 24px Inter, sans-serif';
             ctx.fillText('Pague com PIX', 212, card4Y + 168);
 
-            // Divisor vertical
             ctx.strokeStyle = '#94a3b8';
             ctx.lineWidth = 1.5;
             ctx.beginPath();
@@ -1724,7 +1971,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.lineTo(395, card4Y + 196);
             ctx.stroke();
 
-            // Caixa Branca do QR Code (com margem interna branca para leitura imediata)
             const qrBoxX = 468, qrBoxY = card4Y + 13, qrBoxSize = 196;
             roundRectPath(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 20);
             ctx.fillStyle = '#ffffff';
@@ -1733,7 +1979,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Gera o QR Code exato com o seu código PIX oficial
             const finalPixString = getFinalPixPayload(card.faturamentoNum);
             const qrCanvas = document.createElement('canvas');
             new QRious({
@@ -1747,7 +1992,6 @@ Para facilitar e agilizar, reunimos tudo o que você precisa aqui:
             });
             ctx.drawImage(qrCanvas, qrBoxX + 14, qrBoxY + 14, 168, 168);
 
-            // 7. ONDA DECORATIVA INFERIOR + CARD 5 (VENCIMENTO)
             ctx.beginPath();
             ctx.moveTo(0, 1020);
             ctx.quadraticCurveTo(220, 1135, 800, 1105);
