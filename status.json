@@ -1,1 +1,8 @@
-
+{
+  "timestamp": "2026-11-15T14:19:05.465091+00:00",
+  "hora_local_pc": "15/11/2026 11:19:05",
+  "django_ok": true,
+  "status_robo": "Busca concluída",
+  "ucs_pendentes": 8,
+  "intervalo_horas": 2
+}
