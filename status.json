@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-11-27T01:00:43.762133+00:00",
-  "hora_local_pc": "26/11/2026 22:00:43",
+  "timestamp": "2026-11-27T10:01:34.003331+00:00",
+  "hora_local_pc": "27/11/2026 07:01:34",
   "django_ok": true,
-  "status_robo": "Busca concluída",
+  "status_robo": "Erro IMAP: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\\\Users\\\\Pichau\\\\Desktop\\\\dg tt\\\\faturas_baixadas\\\\UC_000187794801211\\\\temp_2026114234291.pdf'",
   "ucs_pendentes": 6,
   "intervalo_horas": 2
 }
